@@ -1,0 +1,136 @@
+## events.bif
+##
+## Binpac s7comm Analyzer - Defines events the analyzer will generate
+##
+## Author:  Stephen Kleinheider
+## Contact: stephen.kleinheider@inl.gov
+##
+## Copyright (c) 2022 Battelle Energy Alliance, LLC.  All rights reserved.
+
+###################################################################################################
+#######################################  LOGGED BY DEFAULT  #######################################
+###################################################################################################
+
+## ----------------------------------------------cotp----------------------------------------------
+## Event Description:
+##      Event is generated for all COTP packets and contains relevant COTP data
+## Event Data:
+##      - c:                    connection  -> Zeek Connection Struct
+##      - pdu:                  count       -> COTP PDU Type (see cotp_pdu_types in consts.zeek)
+## Default Output:
+##      Writes to log file cotp.log
+## ------------------------------------------------------------------------------------------------
+event cotp%(c: connection,
+            pdu: count%);
+
+## -----------------------------------------s7comm-header------------------------------------------
+## Event Description:
+##      Event is generated for all s7comm packets and contains relevant s7comm header data
+## Event Data:
+##      - c:                    connection  -> Zeek Connection Struct
+##      - rosctr:               count       -> Remote Operating Service Control (see rosctr_types in consts.zeek)
+##      - pdu_reference:        count       -> Reference ID Used to Link Requests to Responses
+##      - function_code:        count       -> Parameter Function Code (see s7comm_functions in consts.zeek)
+##      - error_class:          count       -> Error Class (see s7comm_error_class in consts.zeek)
+##      - error_code:           count       -> Error Code within Error Class
+## Default Output:
+##      Writes to log file s7comm.log
+## ------------------------------------------------------------------------------------------------
+event s7comm_header%(c: connection,
+                     rosctr: count,
+                     pdu_reference: count,
+                     function_code: count,
+                     error_class: count,
+                     error_code: count%);
+
+## ---------------------------------------s7comm-plus-header---------------------------------------
+## Event Description:
+##      Event is generated for all s7comm-plus packets and contains relevant s7comm-plus header data
+## Event Data:
+##      - c:                    connection  -> Zeek Connection Struct
+##      - version:              count       -> S7comm-plus Version (Currently 3)
+##      - opcode:               count       -> Opcode (see s7comm_plus_opcodes in consts.zeek)
+##      - function_code:        count       -> Function Code (see s7comm_plus_functions in consts.zeek)
+## Default Output:
+##      Writes to log file s7comm-plus.log
+## ------------------------------------------------------------------------------------------------
+event s7comm_plus_header%(c: connection,
+                          version: count,
+                          opcode: count,
+                          function_code: count%);
+
+###################################################################################################
+###################################  END OF LOGGED BY DEFAULT  ####################################
+###################################################################################################
+
+
+###################################################################################################
+#####################################  NOT LOGGED BY DEFAULT  #####################################
+###################################################################################################
+
+event tpkt%(c: connection, 
+            version: count, 
+            reserved: count, 
+            length: count%);
+
+event cotp_data%(c: connection,
+                 tpdu_sequence_num: count,
+                 eot: count, 
+                 variable_data: string%);
+
+event cotp_connection_request%(c: connection,
+                               dst_reference: count,
+                               src_reference: count,
+                               class_id: count,
+                               extended_format: count,
+                               explicit_flow_control: count,
+                               variable_data: string%);
+
+event cotp_connection_confirm%(c: connection,
+                               dst_reference: count,
+                               src_reference: count,
+                               class_id: count,
+                               extended_format: count,
+                               explicit_flow_control: count,
+                               variable_data: string%);
+
+event cotp_disconnect_request%(c: connection,
+                               dst_reference: count,
+                               src_reference: count,
+                               reason: count,
+                               variable_data: string%);
+
+event cotp_disconnect_confirm%(c: connection,
+                               dst_reference: count,
+                               src_reference: count,
+                               variable_data: string%);
+
+event cotp_expedited_data%(c: connection,
+                           dst_reference: count,
+                           tpdu_id: count,
+                           eot: count,
+                           variable_data: string%);
+
+event cotp_data_acknowledgement%(c: connection,
+                                 dst_reference: count,
+                                 next_tpdu: count,
+                                 variable_data: string%);
+
+event cotp_expedited_data_acknowledgement%(c: connection,
+                                           dst_reference: count,
+                                           tpdu_id: count,
+                                           variable_data: string%);
+
+event cotp_reject%(c: connection,
+                   dst_reference: count,
+                   next_tpdu: count,
+                   variable_data: string%);
+
+event cotp_error%(c: connection,
+                  dst_reference: count,
+                  error_code: count,
+                  variable_data: string%);
+
+###################################################################################################
+#################################  END OF NOT LOGGED BY DEFAULT  ##################################
+###################################################################################################
