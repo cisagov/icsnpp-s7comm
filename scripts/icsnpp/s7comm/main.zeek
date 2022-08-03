@@ -13,6 +13,7 @@ module S7COMM;
 export{
     redef enum Log::ID += { LOG_COTP, 
                             LOG_S7COMM, 
+                            LOG_S7COMM_READ_SZL, 
                             LOG_S7COMM_PLUS };
 
     ###############################################################################################
@@ -39,10 +40,29 @@ export{
         pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
         function_code           : string    &log;   # Parameter Function Code (in hex)
         function_name           : string    &log;   # Parameter Function Name
+        subfunction_code        : string    &log;   # User-Data Subfunction Code (in hex)
+        subfunction_name        : string    &log;   # User-Data Subfunction Name
         error_class             : string    &log;   # Error Class Name
         error_code              : string    &log;   # Error Code within Error Class
     };
     global log_s7comm: event(rec: S7COMM);
+
+    ###############################################################################################
+    ##########################  S7COMM_READ_SZL -> s7comm_read_szl.log  ###########################
+    ###############################################################################################
+    type S7COMM_READ_SZL: record {
+        ts                      : time      &log;   # Timestamp of Event
+        uid                     : string    &log;   # Zeek Unique ID for Connection
+        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
+        method                  : string    &log;   # Request or Response
+        szl_id                  : string    &log;   # SZL ID (in hex)
+        szl_id_name             : string    &log;   # Meaning of SZL ID
+        szl_index               : string    &log;   # SZL Index (in hex)
+        return_code             : string    &log;   # Return Code (in hex)
+        return_code_name        : string    &log;   # Meaning of Return Code
+    };
+    global log_s7comm_read_szl: event(rec: S7COMM_READ_SZL);
 
     ###############################################################################################
     ###############################  S7COMM_PLUS -> s7comm_plus.log  ##############################
@@ -67,7 +87,7 @@ const ports = {
 redef likely_server_ports += { ports };
 
 ###################################################################################################
-###############  Defines Log Streams for cotp.log, s7comm.log, and s7comm_plus.log  ###############
+####  Defines Log Streams for cotp.log, s7comm.log, s7comm_read_szl.log, and s7comm_plus.log  #####
 ###################################################################################################
 event zeek_init() &priority=5 {
     Log::create_stream(S7COMM::LOG_COTP, [$columns=COTP,
@@ -77,6 +97,10 @@ event zeek_init() &priority=5 {
     Log::create_stream(S7COMM::LOG_S7COMM, [$columns=S7COMM,
                                             $ev=log_s7comm,
                                             $path="s7comm"]);
+
+    Log::create_stream(S7COMM::LOG_S7COMM_READ_SZL, [$columns=S7COMM_READ_SZL,
+                                            $ev=log_s7comm_read_szl,
+                                            $path="s7comm_read_szl"]);
 
     Log::create_stream(S7COMM::LOG_S7COMM_PLUS, [$columns=S7COMM_PLUS,
                                             $ev=log_s7comm_plus,
@@ -110,6 +134,8 @@ event s7comm_header(c: connection,
                     rosctr: count,
                     pdu_reference: count,
                     function_code: count,
+                    subfunction: count,
+                    plc_control: string,
                     error_class: count,
                     error_code: count) {
 
@@ -126,17 +152,114 @@ event s7comm_header(c: connection,
 
     if ( function_code != 0xff )
     {
-        s7comm_item$function_code = fmt("0x%02x", function_code);
-        s7comm_item$function_name = s7comm_functions[function_code];
+        # Formatting for function is different for User-Data functions
+        if ( rosctr == 0x07 ) 
+        {
+            s7comm_item$function_code = fmt("0x%02x", function_code);
+            if ( (function_code & 0xf0) == 0x40)
+                s7comm_item$function_name = "Request: " + s7comm_userdata_functions[function_code & 0x0f];
+            else if ( (function_code & 0xf0) == 0x80)
+                s7comm_item$function_name = "Response: " + s7comm_userdata_functions[function_code & 0x0f];
+            else if ( (function_code & 0xf0) == 0x00)
+                s7comm_item$function_name = "Push: " + s7comm_userdata_functions[function_code & 0x0f];
+            else
+                s7comm_item$function_name = "Unknown: " + s7comm_userdata_functions[function_code & 0x0f];
+        }
+        else
+        {
+            s7comm_item$function_code = fmt("0x%02x", function_code);
+            s7comm_item$function_name = s7comm_functions[function_code];
+        }
+    }
+ 
+    if ( subfunction != 0xff )
+    {
+        s7comm_item$subfunction_code = fmt("0x%02x", subfunction);
+
+        # For User-data functions, subfunction code and name is dependant on function code
+        switch( (function_code & 0x0f) )
+        {
+            case 0x00:
+                s7comm_item$subfunction_name = s7comm_mode_transition_subfunctions[subfunction];
+                break;
+            case 0x01:
+                s7comm_item$subfunction_name = s7comm_programmer_controls_subfunctions[subfunction];
+                break;
+            case 0x02:
+                s7comm_item$subfunction_name = s7comm_cyclic_services_subfunctions[subfunction];
+                break;
+            case 0x03:
+                s7comm_item$subfunction_name = s7comm_block_functions_subfunctions[subfunction];
+                break;
+            case 0x04:
+                s7comm_item$subfunction_name = s7comm_cpu_functions_subfunctions[subfunction];
+                break;
+            case 0x05:
+                s7comm_item$subfunction_name = s7comm_security_subfunctions[subfunction];
+                break;
+            case 0x07:
+                s7comm_item$subfunction_name = s7comm_time_functions_subfunctions[subfunction];
+                break;
+            default:
+                break;
+        }
     }
 
-    if ( rosctr == 0x03 || rosctr == 0x02 )
+    # For PLC Control messages, add PLC Control services to subfunction name
+    if ( function_code == 0x28 && rosctr == 0x01 )
     {
-        s7comm_item$error_class = s7comm_error_class[error_class];
-        s7comm_item$error_code = fmt("0x%02x", error_code);
+        s7comm_item$subfunction_code = plc_control;
+        s7comm_item$subfunction_name = s7comm_plc_control_services[plc_control];
+    }
+
+    # Print error classes and error codes if they exist
+    if ( error_code != 0xff && error_code != 0xffff )
+    {
+        if ( error_class != 0xfe )
+        {
+            s7comm_item$error_class = s7comm_error_class[error_class];
+            s7comm_item$error_code = fmt("0x%02x", error_code);
+        }
+        else if ( error_code == 0x00 )
+        {
+            s7comm_item$error_class = s7comm_error_class[0x00];
+            s7comm_item$error_code = fmt("0x%02x", error_code);
+        }
+        else
+        {
+            s7comm_item$error_class = "Parameter Error";
+            s7comm_item$error_code = fmt("0x%02x", error_code);
+        }
     }
 
     Log::write(LOG_S7COMM, s7comm_item);
+}
+
+###################################################################################################
+################  Defines logging of s7comm_read_szl event -> s7comm_read_szl.log  ################
+###################################################################################################
+event s7comm_read_szl(c: connection,
+                      pdu_reference: count,
+                      method: count,
+                      return_code: count,
+                      szl_id: count,
+                      szl_index: count) {
+
+    local s7comm_read_szl_item: S7COMM_READ_SZL;
+
+    s7comm_read_szl_item$ts  = network_time();
+    s7comm_read_szl_item$uid = c$uid;
+    s7comm_read_szl_item$id  = c$id;
+
+    s7comm_read_szl_item$pdu_reference = pdu_reference;
+    s7comm_read_szl_item$method = s7comm_userdata_method[method];
+    s7comm_read_szl_item$szl_id = fmt("0x%04x", szl_id);
+    s7comm_read_szl_item$szl_id_name = s7comm_szl_id[szl_id & 0xff];
+    s7comm_read_szl_item$szl_index = fmt("0x%04x", szl_index);
+    s7comm_read_szl_item$return_code = fmt("0x%02x", return_code);
+    s7comm_read_szl_item$return_code_name = s7comm_userdata_return_codes[return_code];
+
+    Log::write(LOG_S7COMM_READ_SZL, s7comm_read_szl_item);
 }
 
 ###################################################################################################

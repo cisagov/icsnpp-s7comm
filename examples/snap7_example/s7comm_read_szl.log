@@ -1,0 +1,19 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	s7comm_read_szl
+#open	2022-08-02-19-18-38
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	pdu_reference	method	szl_id	szl_id_name	szl_index	return_code	return_code_name
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	string
+1454969289.937630	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	1	Request	0x0011	Module identification	0x0000	0xff	Success
+1454969289.942358	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	1	Response	0x0011	Module identification	0x0000	0xff	Success
+1454969289.946656	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	2	Request	0x001c	Component Identification	0x0000	0xff	Success
+1454969289.951371	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	2	Response	0x001c	Component Identification	0x0000	0xff	Success
+1454969289.960281	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	4	Request	0x0131	Communication capability parameters	0x0001	0xff	Success
+1454969289.965341	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	4	Response	0x0131	Communication capability parameters	0x0001	0xff	Success
+1454969289.967206	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	5	Request	0x0424	Modes	0x0000	0xff	Success
+1454969289.972343	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	5	Response	0x0424	Modes	0x0000	0xff	Success
+1454969289.974084	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	6	Request	0x0011	Module identification	0x0000	0xff	Success
+1454969289.979368	CFgi2f1FVsEg2joCN4	134.217.61.131	51212	134.217.61.211	102	6	Response	0x0011	Module identification	0x0000	0xff	Success
+#close	2022-08-02-19-18-38

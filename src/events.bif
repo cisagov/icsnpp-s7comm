@@ -31,6 +31,8 @@ event cotp%(c: connection,
 ##      - rosctr:               count       -> Remote Operating Service Control (see rosctr_types in consts.zeek)
 ##      - pdu_reference:        count       -> Reference ID Used to Link Requests to Responses
 ##      - function_code:        count       -> Parameter Function Code (see s7comm_functions in consts.zeek)
+##      - subfunction:          count       -> User-Data Subfunction Code (see s7comm_userdata_functions in consts.zeek)
+##      - plc_control:          string      -> PLC-Control function (see s7comm_plc_control_services in consts.zeek)
 ##      - error_class:          count       -> Error Class (see s7comm_error_class in consts.zeek)
 ##      - error_code:           count       -> Error Code within Error Class
 ## Default Output:
@@ -40,8 +42,30 @@ event s7comm_header%(c: connection,
                      rosctr: count,
                      pdu_reference: count,
                      function_code: count,
+                     subfunction: count,
+                     plc_control: string,
                      error_class: count,
                      error_code: count%);
+
+## ---------------------------------------s7comm_read-szl------------------------------------------
+## Event Description:
+##      Event is generated for all s7comm User-Data CPU Functions with Read SZL subfunction and 
+##      contains relevant Read SZL data
+## Event Data:
+##      - pdu_reference:        count       -> Reference ID Used to Link Requests to Responses
+##      - method:               count       -> Request or Response
+##      - return_code:          count       -> Return Code (see s7comm_userdata_return_codes in consts.zeek)
+##      - szl_id:               count       -> SZL ID (see s7comm_szl_id in consts.zeek)
+##      - szl_index:            count       -> SZL Index
+## Default Output:
+##      Writes to log file s7comm.log
+## ------------------------------------------------------------------------------------------------
+event s7comm_read_szl%(c: connection,
+                       pdu_reference: count,
+                       method: count,
+                       return_code: count,
+                       szl_id: count,
+                       szl_index: count%);
 
 ## ---------------------------------------s7comm-plus-header---------------------------------------
 ## Event Description:
