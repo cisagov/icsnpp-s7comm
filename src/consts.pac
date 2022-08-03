@@ -64,6 +64,31 @@ enum s7comm_function_codes
 }
 
 ############################################################
+###############  S7comm Userdata Functions  ################
+############################################################
+enum s7comm_userdata_functions
+{
+    MODE_TRANSITION = 0x00,
+    PROGRAMMER_COMMANDS = 0x01,
+    CYCLIC_SERVICES = 0x02,
+    BLOCK_FUNCTIONS = 0x03,
+    CPU_FUNCTIONS = 0x04,
+    SECURITY = 0x05,
+    PBC_BSEND_BRECV = 0x06,
+    TIME_FUNCTIONS = 0x07,
+    NC_PROGRAMMING = 0x0f,
+}
+
+############################################################
+#################  S7comm Userdata Method  #################
+############################################################
+enum s7comm_userdata_method
+{
+    USERDATA_REQUEST = 0x11,
+    USERDATA_RESPONSE = 0x12,
+}
+
+############################################################
 ##################  S7comm-plus Opcodes  ###################
 ############################################################
 enum s7comm_plus_opcodes

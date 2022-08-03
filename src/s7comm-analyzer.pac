@@ -8,11 +8,18 @@
 ## Copyright (c) 2022 Battelle Energy Alliance, LLC.  All rights reserved.
 
 %header{
-
+    string get_string(const_bytestring data);
 %}
 
 %code{
+    string get_string(const_bytestring data){
+        string str = "";
 
+        for ( int32 i = 0; i < data.length(); ++i )
+            str += data[i];
+
+        return str;
+    }
 %}
 
 refine flow S7COMM_Flow += {
@@ -32,9 +39,35 @@ refine flow S7COMM_Flow += {
         %}
 
     ###############################################################################################
-    ###########################  Process data for s7comm_header event  ############################
+    ##################### Process data for rosctr_job -> s7comm_header event  #####################
     ###############################################################################################
-    function process_s7comm_header(data: S7comm): bool
+    function process_rosctr_job(data: ROSCTR_Job): bool
+        %{
+            if ( ::s7comm_header )
+            {
+                // Event for PLC Control function in produced a function process_rosctr_job_plc_control so do not process function code 0x28 here
+                if ( ${data.function_code} != 0x28 )
+                {
+                    // PDU Reference is little endian so we need to do an endian swap
+                    uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                    zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
+                                                        connection()->zeek_analyzer()->Conn(),
+                                                        JOB,
+                                                        pdu_reference,
+                                                        ${data.function_code},
+                                                        0xff,
+                                                        zeek::make_intrusive<zeek::StringVal>(""),
+                                                        0xff,
+                                                        0xff);
+                }
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ############### Process data for rosctr_job_plc_control -> s7comm_header event  ###############
+    ###############################################################################################
+    function process_rosctr_job_plc_control(data: ROSCTR_Job_PLC_Control): bool
         %{
             if ( ::s7comm_header )
             {
@@ -42,11 +75,125 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
                                                       connection()->zeek_analyzer()->Conn(),
-                                                      ${data.rosctr},
+                                                      JOB,
                                                       pdu_reference,
-                                                      ${data.parameter_code},
+                                                      0x28,
+                                                      0xff,
+                                                      zeek::make_intrusive<zeek::StringVal>(get_string(${data.plc_control_name})),
+                                                      0xff,
+                                                      0xff);
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ##################### Process data for rosctr_ack -> s7comm_header event  #####################
+    ###############################################################################################
+    function process_rosctr_ack(data: ROSCTR_ACK): bool
+        %{
+            if ( ::s7comm_header )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
+                                                      connection()->zeek_analyzer()->Conn(),
+                                                      ACK,
+                                                      pdu_reference,
+                                                      ${data.function_code},
+                                                      0xff,
+                                                      zeek::make_intrusive<zeek::StringVal>(""),
                                                       ${data.error_class},
                                                       ${data.error_code});
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ################## Process data for rosctr_ack_data -> s7comm_header event  ###################
+    ###############################################################################################
+    function process_rosctr_ack_data(data: ROSCTR_ACK_Data): bool
+        %{
+            if ( ::s7comm_header )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
+                                                      connection()->zeek_analyzer()->Conn(),
+                                                      ACK_DATA,
+                                                      pdu_reference,
+                                                      ${data.function_code},
+                                                      0xff,
+                                                      zeek::make_intrusive<zeek::StringVal>(""),
+                                                      ${data.error_class},
+                                                      ${data.error_code});
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ############## Process data for rosctr_user_data_request -> s7comm_header event  ##############
+    ###############################################################################################
+    function process_rosctr_user_data_request(data: ROSCTR_User_Data_Request): bool
+        %{
+            if ( ::s7comm_header )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.user_data.pdu_reference} >> 8) | (${data.user_data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
+                                                      connection()->zeek_analyzer()->Conn(),
+                                                      USER_DATA,
+                                                      pdu_reference,
+                                                      ${data.user_data.function_code},
+                                                      ${data.user_data.subfunction},
+                                                      zeek::make_intrusive<zeek::StringVal>(""),
+                                                      0xfe,
+                                                      0xffff);
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ############## Process data for rosctr_user_data_response -> s7comm_header event  #############
+    ###############################################################################################
+    function process_rosctr_user_data_response(data: ROSCTR_User_Data_Response): bool
+        %{
+            if ( ::s7comm_header )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.user_data.pdu_reference} >> 8) | (${data.user_data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
+                                                      connection()->zeek_analyzer()->Conn(),
+                                                      USER_DATA,
+                                                      pdu_reference,
+                                                      ${data.user_data.function_code},
+                                                      ${data.user_data.subfunction},
+                                                      zeek::make_intrusive<zeek::StringVal>(""),
+                                                      0xfe,
+                                                      ${data.error_code});
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ################## Process data for s7comm_read_szl -> s7comm_read_szl event  #################
+    ###############################################################################################
+    function process_s7comm_read_szl(data: Read_SZL): bool
+        %{
+            if ( ::s7comm_read_szl )
+            {
+                // Fragmented Packets do not contain information we need to log, so ignore those
+                if ( ${data.data_reference_id} == 0 or ${data.last_data_unit} == 1)
+                {
+                    // PDU Reference is little endian so we need to do an endian swap
+                    uint16 pdu_reference = (${data.user_data.pdu_reference} >> 8) | (${data.user_data.pdu_reference} << 8);
+                    zeek::BifEvent::enqueue_s7comm_read_szl(connection()->zeek_analyzer(),
+                                                            connection()->zeek_analyzer()->Conn(),
+                                                            pdu_reference,
+                                                            ${data.user_data.method},
+                                                            ${data.return_code},
+                                                            ${data.szl_id},
+                                                            ${data.szl_index});
+                }
             }
             return true;
         %}
