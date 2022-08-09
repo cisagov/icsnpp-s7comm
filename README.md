@@ -36,7 +36,7 @@ If you are not using site/local.zeek or another site installation of Zeek and ju
 
 ```bash
 git clone https://github.com/cisagov/icsnpp-s7comm.git
-zeek -Cr icsnpp-s7comm/examples/s7comm_plus_example.pcap icsnpp/s7comm
+zeek -Cr icsnpp-s7comm/tests/traces/s7comm_plus_example.pcap icsnpp/s7comm
 ```
 
 ### Manual Install
@@ -69,7 +69,7 @@ To run this plugin in a site deployment you will need to add the line `@load ics
 If you are not using site/local.zeek or another site installation of Zeek and just want to run this package on a packet capture you can add `icsnpp/s7comm` to your command to run this plugin's scripts on the packet capture:
 
 ```bash
-zeek -Cr icsnpp-s7comm/examples/s7comm_plus_example.pcap icsnpp/s7comm
+zeek -Cr icsnpp-s7comm/tests/traces/s7comm_plus_example.pcap icsnpp/s7comm
 ```
 
 If you want to deploy this on an already existing Zeek implementation and you don't want to build the plugin on the machine, you can extract the ICSNPP_S7comm.tgz file to the directory of the established ZEEK_PLUGIN_PATH (default is `${ZEEK_INSTALLATION_DIR}/lib/zeek/plugins/`).
