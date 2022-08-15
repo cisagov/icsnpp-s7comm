@@ -205,7 +205,7 @@ type ROSCTR_Job(is_orig: bool) = record {
     data_length:        uint16;
     function_code:      uint8;
     function_analysis:  case function_code of {
-        PLC_CONTROL     -> plc_control:     ROSCTR_Job_PLC_Control(pdu_reference);
+        PLC_CONTROL     -> plc_control:     ROSCTR_Job_PLC_Control(is_orig, pdu_reference);
         default         -> additional_data: bytestring &restofdata;
     };
 } &let {
@@ -228,7 +228,7 @@ type ROSCTR_Job(is_orig: bool) = record {
 ##      Sends header information to the s7comm_header event. By default this is then logged to the
 ##      s7comm.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_Job_PLC_Control(pdu_reference: uint16) = record {
+type ROSCTR_Job_PLC_Control(is_orig: bool, pdu_reference: uint16) = record {
     header_h:           uint16;
     header_m:           uint8;
     header_l:           uint32;
@@ -237,6 +237,7 @@ type ROSCTR_Job_PLC_Control(pdu_reference: uint16) = record {
     plc_control_length: uint8;
     plc_control_name:   bytestring &length=plc_control_length;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_rosctr_job_plc_control(this);
 } &byteorder=bigendian;
 
