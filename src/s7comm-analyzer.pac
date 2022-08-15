@@ -169,6 +169,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.user_data.pdu_reference} >> 8) | (${data.user_data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
                                                       connection()->zeek_analyzer()->Conn(),
+                                                      ${data.is_originator},
                                                       USER_DATA,
                                                       pdu_reference,
                                                       ${data.user_data.function_code},
