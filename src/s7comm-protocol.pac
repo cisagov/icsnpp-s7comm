@@ -443,7 +443,7 @@ type CPU_Functions(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_d
 ##      Sends read szl information to the s7comm_read_szl event. By default this is then logged to the
 ##      s7comm_read_szl.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type Read_SZL(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
+type Read_SZL(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
     return_code:                uint8;
     transport_size:             uint8;
     data_length:                uint16;
