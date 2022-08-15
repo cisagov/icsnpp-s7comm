@@ -63,7 +63,6 @@ event s7comm_header%(c: connection,
 ##      Writes to log file s7comm.log
 ## ------------------------------------------------------------------------------------------------
 event s7comm_read_szl%(c: connection,
-                       is_orig: bool,
                        pdu_reference: count,
                        method: count,
                        return_code: count,

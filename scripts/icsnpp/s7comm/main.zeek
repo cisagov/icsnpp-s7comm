@@ -56,7 +56,6 @@ export{
         ts                      : time      &log;   # Timestamp of Event
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
         pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
         method                  : string    &log;   # Request or Response
         szl_id                  : string    &log;   # SZL ID (in hex)
@@ -247,7 +246,6 @@ event s7comm_header(c: connection,
 ################  Defines logging of s7comm_read_szl event -> s7comm_read_szl.log  ################
 ###################################################################################################
 event s7comm_read_szl(c: connection,
-                      is_orig: bool,
                       pdu_reference: count,
                       method: count,
                       return_code: count,
@@ -259,7 +257,6 @@ event s7comm_read_szl(c: connection,
     s7comm_read_szl_item$ts  = network_time();
     s7comm_read_szl_item$uid = c$uid;
     s7comm_read_szl_item$id  = c$id;
-    s7comm_read_szl_item$is_orig  = is_orig;
 
     s7comm_read_szl_item$pdu_reference = pdu_reference;
     s7comm_read_szl_item$method = s7comm_userdata_method[method];
