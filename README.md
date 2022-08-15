@@ -134,7 +134,6 @@ This log captures information for the common S7Comm Read-SZL function. This data
 | ts                    | time      | Timestamp                                                 |
 | uid                   | string    | Unique ID for this Connection                             |
 | id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
-| is_orig               | bool      | True if the packet is sent from the originator            |
 | pdu_reference         | count     | Reference ID Used to Link Requests to Responses           |
 | method                | string    | Request or Response                                       |
 | szl_id                | string    | SZL ID (in hex)                                           |
