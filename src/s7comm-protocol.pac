@@ -27,13 +27,15 @@
 ## ------------------------------------------------------------------------------------------------
 type S7COMM_PDU(is_orig: bool) = record {
     tpkt:               TPKT;
-    cotp:               COTP;
+    cotp:               COTP(is_orig);
     s7comm_id:          uint8;
     data:               case s7comm_id of {
-        S7COMM_ID       -> s7comm:      S7comm;
-        S7COMM_PLUS_ID  -> s7comm_plus: S7comm_Plus;
+        S7COMM_ID       -> s7comm:      S7comm(is_orig);
+        S7COMM_PLUS_ID  -> s7comm_plus: S7comm_Plus(is_orig);
         default         -> other:       bytestring &restofdata;
     };
+} &let {
+    is_originator: bool = is_orig;
 } &byteorder=littleendian;
 
 ###################################################################################################
@@ -75,7 +77,7 @@ type TPKT = record {
 ##      Sends header information to the cotp event. By default this is then logged to the 
 ##      cotp.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type COTP = record {
+type COTP(is_orig: bool) = record {
     length:             uint8;
     pdu_data:           uint8;
     cotp_data:          case (pdu_data >> 4) of {
@@ -92,6 +94,7 @@ type COTP = record {
         default                         -> unknown: bytestring &length = length-1;
     };
 } &let {
+    is_originator:      bool = is_orig;
     pdu_type:           uint8 = (pdu_data >> 4);
     cdt:                uint8 = (pdu_data & 0xf);
     deliver: bool = $context.flow.process_cotp(this);
@@ -129,16 +132,17 @@ type COTP = record {
 ##      Starts protocol parsing for S7comm header by getting ROSCTR then passes processing to
 ##      ROSCTR specific processing.
 ## ------------------------------------------------------------------------------------------------
-type S7comm = record {
+type S7comm(is_orig: bool) = record {
     rosctr:             uint8;
     rosctr_function:    case rosctr of {
-        JOB                 -> job:         ROSCTR_Job;
-        ACK                 -> ack:         ROSCTR_ACK;
-        ACK_DATA            -> ack_data:    ROSCTR_ACK_Data;
-        USER_DATA           -> user_data:   ROSCTR_User_Data;
+        JOB                 -> job:         ROSCTR_Job(is_orig);
+        ACK                 -> ack:         ROSCTR_ACK(is_orig);
+        ACK_DATA            -> ack_data:    ROSCTR_ACK_Data(is_orig);
+        USER_DATA           -> user_data:   ROSCTR_User_Data(is_orig);
         default             -> unknown:     bytestring &restofdata;
     };
-
+} &let {
+    is_originator: bool = is_orig;
 } &byteorder=bigendian;
 
 ## ---------------------------------------S7comm-Plus-Header---------------------------------------
@@ -157,7 +161,7 @@ type S7comm = record {
 ##      Sends header information to the s7comm_plus_header event. By default this is then logged 
 ##      to the s7comm_plus.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type S7comm_Plus = record {
+type S7comm_Plus(is_orig: bool) = record {
     version:            uint8;
     length:             uint16;
     digest_length:      uint8;
@@ -165,6 +169,7 @@ type S7comm_Plus = record {
     opcode:             uint8;
     opcode_data:        uint32;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_s7comm_plus_header(this);
 } &byteorder=bigendian;
 
@@ -193,7 +198,7 @@ type S7comm_Plus = record {
 ##      s7comm.log file as defined in main.zeek. If function code is PLC Control, passess 
 ##      processing to ROSCTR_Job_PLC_Control.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_Job = record {
+type ROSCTR_Job(is_orig: bool) = record {
     redundancy_id:      uint16;
     pdu_reference:      uint16;
     parameter_length:   uint16;
@@ -204,6 +209,7 @@ type ROSCTR_Job = record {
         default         -> additional_data: bytestring &restofdata;
     };
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_rosctr_job(this);
 } &byteorder=bigendian;
 
@@ -251,7 +257,7 @@ type ROSCTR_Job_PLC_Control(pdu_reference: uint16) = record {
 ##      Sends header information to the s7comm_header event. By default this is then logged to the
 ##      s7comm.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_ACK = record {
+type ROSCTR_ACK(is_orig: bool) = record {
     redundancy_id:      uint16;
     pdu_reference:      uint16;
     parameter_length:   uint16;
@@ -260,6 +266,7 @@ type ROSCTR_ACK = record {
     function_code:      uint8;
     additional_data:    bytestring &restofdata;
 } &let {
+    is_originator: bool = is_orig;
     error_class:        uint8 = error_data.error_class;
     error_code:         uint8 = error_data.error_code;
     deliver: bool = $context.flow.process_rosctr_ack(this);
@@ -283,7 +290,7 @@ type ROSCTR_ACK = record {
 ##      Sends header information to the s7comm_header event. By default this is then logged to the
 ##      s7comm.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_ACK_Data = record {
+type ROSCTR_ACK_Data(is_orig: bool) = record {
     redundancy_id:      uint16;
     pdu_reference:      uint16;
     parameter_length:   uint16;
@@ -295,6 +302,7 @@ type ROSCTR_ACK_Data = record {
     };
     additional_data:    bytestring &restofdata;
 } &let {
+    is_originator: bool = is_orig;
     error_class:        uint8 = error_data.error_class;
     error_code:         uint8 = error_data.error_code;
     function_code:      uint8 = case parameter_length of {
@@ -327,7 +335,7 @@ type ROSCTR_ACK_Data = record {
 ##      Gets majority of s7comm header information for ROSCTR User-Data functions, then passes 
 ##      processing to either ROSCTR_User_Data_Response or ROSCTR_User_Data_Request based on method.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_User_Data = record {
+type ROSCTR_User_Data(is_orig: bool) = record {
     redundancy_id:              uint16;
     pdu_reference:              uint16;
     parameter_length:           uint16;
@@ -343,6 +351,8 @@ type ROSCTR_User_Data = record {
         USERDATA_RESPONSE   -> response:       ROSCTR_User_Data_Response(this);
         default             -> request:        ROSCTR_User_Data_Request(this);
     };
+} &let {
+    is_originator: bool = is_orig;
 } &byteorder=bigendian;
 
 ## ----------------------------------ROSCTR-User-Data-Response-------------------------------------
@@ -368,6 +378,7 @@ type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data) = record {
         default             -> unknown:         bytestring &restofdata;
     };
 } &let {
+    is_originator: bool = user_data.is_originator;
     deliver: bool = $context.flow.process_rosctr_user_data_response(this);
 } &byteorder=bigendian;
 
@@ -388,6 +399,7 @@ type ROSCTR_User_Data_Request(user_data: ROSCTR_User_Data) = record {
         default             -> unknown:         bytestring &restofdata;
     };
 } &let {
+    is_originator: bool = user_data.is_originator;
     deliver: bool = $context.flow.process_rosctr_user_data_request(this);
 } &byteorder=bigendian;
 

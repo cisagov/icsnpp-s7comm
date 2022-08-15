@@ -21,6 +21,7 @@
 ##      Writes to log file cotp.log
 ## ------------------------------------------------------------------------------------------------
 event cotp%(c: connection,
+            is_orig: bool,
             pdu: count%);
 
 ## -----------------------------------------s7comm-header------------------------------------------
@@ -39,6 +40,7 @@ event cotp%(c: connection,
 ##      Writes to log file s7comm.log
 ## ------------------------------------------------------------------------------------------------
 event s7comm_header%(c: connection,
+                     is_orig: bool,
                      rosctr: count,
                      pdu_reference: count,
                      function_code: count,
@@ -79,6 +81,7 @@ event s7comm_read_szl%(c: connection,
 ##      Writes to log file s7comm-plus.log
 ## ------------------------------------------------------------------------------------------------
 event s7comm_plus_header%(c: connection,
+                          is_orig: bool,
                           version: count,
                           opcode: count,
                           function_code: count%);
