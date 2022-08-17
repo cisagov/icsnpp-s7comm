@@ -23,6 +23,7 @@ export{
         ts                      : time      &log;   # Timestamp of Event
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
         pdu_code                : string    &log;   # COTP PDU Type Code (in hex)
         pdu_name                : string    &log;   # COTP PDU Type Name
     };
@@ -35,6 +36,7 @@ export{
         ts                      : time      &log;   # Timestamp of Event
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
         rosctr_code             : count     &log;   # Remote Operating Service Control Code (in hex)
         rosctr_name             : string    &log;   # Remote Operating Service Control Name
         pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
@@ -71,6 +73,7 @@ export{
         ts                      : time      &log;   # Timestamp of Event
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
         version                 : count     &log;   # S7comm-plus Version
         opcode                  : string    &log;   # Opcode Code (in hex)
         opcode_name             : string    &log;   # Opcode Name
@@ -113,6 +116,7 @@ event zeek_init() &priority=5 {
 ###########################  Defines logging of cotp event -> cotp.log  ###########################
 ###################################################################################################
 event cotp(c: connection,
+           is_orig: bool,
            pdu: count) {
 
     add c$service["cotp"];
@@ -120,6 +124,7 @@ event cotp(c: connection,
     cotp_item$ts  = network_time();
     cotp_item$uid = c$uid;
     cotp_item$id  = c$id;
+    cotp_item$is_orig  = is_orig;
 
     cotp_item$pdu_code = fmt("0x%02x", pdu);
     cotp_item$pdu_name = cotp_pdu_types[pdu];
@@ -131,6 +136,7 @@ event cotp(c: connection,
 #####################  Defines logging of s7comm_header event -> s7comm.log  ######################
 ###################################################################################################
 event s7comm_header(c: connection,
+                    is_orig: bool,
                     rosctr: count,
                     pdu_reference: count,
                     function_code: count,
@@ -145,6 +151,7 @@ event s7comm_header(c: connection,
     s7comm_item$ts  = network_time();
     s7comm_item$uid = c$uid;
     s7comm_item$id  = c$id;
+    s7comm_item$is_orig  = is_orig;
 
     s7comm_item$rosctr_code = rosctr;
     s7comm_item$rosctr_name = rosctr_types[rosctr];
@@ -266,6 +273,7 @@ event s7comm_read_szl(c: connection,
 #################  Defines logging of s7comm_plus_header event -> s7comm_plus.log  ################
 ###################################################################################################
 event s7comm_plus_header(c: connection,
+                         is_orig: bool,
                          version: count,
                          opcode: count,
                          function_code: count) {
@@ -276,6 +284,7 @@ event s7comm_plus_header(c: connection,
     s7comm_plus_item$ts  = network_time();
     s7comm_plus_item$uid = c$uid;
     s7comm_plus_item$id  = c$id;
+    s7comm_plus_item$is_orig  = is_orig;
 
     s7comm_plus_item$version = version;
     s7comm_plus_item$opcode = fmt("0x%02x", opcode);

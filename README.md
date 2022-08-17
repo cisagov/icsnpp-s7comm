@@ -93,6 +93,7 @@ This log captures COTP information for every COTP packet and logs it to **cotp.l
 | ts                | time      | Timestamp                                                 |
 | uid               | string    | Unique ID for this Connection                             |
 | id                | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
+| is_orig           | bool      | True if the packet is sent from the originator            |
 | pdu_code          | string    | COTP PDU Type Code (in hex)                               |
 | pdu_name          | string    | COTP PDU Name                                             |
 
@@ -109,6 +110,7 @@ This log captures s7comm header information for every s7comm packet and logs it 
 | ts                    | time      | Timestamp                                                 |
 | uid                   | string    | Unique ID for this Connection                             |
 | id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
+| is_orig               | bool      | True if the packet is sent from the originator            |
 | rosctr_code           | count     | Remote Operating Service Control Code (in hex)            |
 | rosctr_name           | string    | Remote Operating Service Control Name                     |
 | pdu_reference         | count     | Reference ID Used to Link Requests to Responses           |
@@ -153,6 +155,7 @@ This log captures s7comm-plus header information for every s7comm-plus packet an
 | ts                    | time      | Timestamp                                                 |
 | uid                   | string    | Unique ID for this Connection                             |
 | id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
+| is_orig               | bool      | True if the packet is sent from the originator            |
 | version               | count     | S7comm-plus Version                                       |
 | opcode                | string    | Opcode Code (in hex)                                      |
 | opcode_name           | string    | Opcode Name                                               |
