@@ -19,20 +19,17 @@
 ## Message Format:
 ##      - tpkt:                 TPKT              -> TPKT Data (see TPKT)
 ##      - cotp:                 COTP              -> COTP Data (see COTP)
-##      - s7comm_id:            uint8             -> s7comm or s7comm-plus (see consts.pac)
-##      - data:                 variable          -> s7comm type depending on s7comm_id
+##      - data:                 variable          -> s7comm data or end parsing of current packet
 ## Protocol Parsing:
 ##      Starts protocol parsing by getting TPKT and COTP information and passes processing to
-##      S7comm or S7comm_Plus according to s7comm_id.
+##      S7comm_Packet as long as there is data following tpkt and cotp.
 ## ------------------------------------------------------------------------------------------------
 type S7COMM_PDU(is_orig: bool) = record {
     tpkt:               TPKT;
     cotp:               COTP(is_orig);
-    s7comm_id:          uint8;
-    data:               case s7comm_id of {
-        S7COMM_ID       -> s7comm:      S7comm(is_orig);
-        S7COMM_PLUS_ID  -> s7comm_plus: S7comm_Plus(is_orig);
-        default         -> other:       bytestring &restofdata;
+    data:               case (tpkt.length - cotp.length) of {
+        5               -> other:       bytestring &restofdata;
+        default         -> s7comm_data: S7comm_Packet(is_orig);
     };
 } &let {
     is_originator: bool = is_orig;
@@ -108,6 +105,25 @@ type COTP(is_orig: bool) = record {
 ##################################  S7COMM & S7COMM-PLUS HEADERS  #################################
 ###################################################################################################
 
+## ------------------------------------------S7comm-Packet-----------------------------------------
+## Message Description:
+##      S7comm Packet - Differentiate between S7comm or S7comm_Plus
+## Message Format:
+##      - s7comm_id:            uint8             -> s7comm or s7comm-plus (see consts.pac)
+##      - data:                 variable          -> s7comm type depending on s7comm_id
+## Protocol Parsing:
+##      Passes processing to S7comm or S7comm_Plus according to s7comm_id.
+## ------------------------------------------------------------------------------------------------
+type S7comm_Packet(is_orig: bool) = record {
+    s7comm_id:          uint8;
+    data:               case s7comm_id of {
+        S7COMM_ID       -> s7comm:      S7comm(is_orig);
+        S7COMM_PLUS_ID  -> s7comm_plus: S7comm_Plus(is_orig);
+        default         -> other:       bytestring &restofdata;
+    };
+} &let {
+    is_originator: bool = is_orig;
+} &byteorder=littleendian;
 
 ## -----------------------------------------S7comm-Header------------------------------------------
 ## Message Description:
@@ -349,8 +365,8 @@ type ROSCTR_User_Data(is_orig: bool) = record {
     subfunction:                uint8;
     sequence_num:               uint8;
     request_response:           case method of {
-        USERDATA_RESPONSE   -> response:       ROSCTR_User_Data_Response(this);
-        default             -> request:        ROSCTR_User_Data_Request(this);
+        USERDATA_RESPONSE   -> response:       ROSCTR_User_Data_Response(this, is_orig);
+        default             -> request:        ROSCTR_User_Data_Request(this, is_orig);
     };
 } &let {
     is_originator: bool = is_orig;
@@ -370,7 +386,7 @@ type ROSCTR_User_Data(is_orig: bool) = record {
 ##      s7comm.log file as defined in main.zeek. Passes processing to CPU Functions if function
 ##      code is CPU-Functions.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data) = record {
+type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data, is_orig: bool) = record {
     data_reference_id:      uint8;
     last_data_unit:         uint8;
     error_code:             uint16;
@@ -379,7 +395,7 @@ type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data) = record {
         default             -> unknown:         bytestring &restofdata;
     };
 } &let {
-    is_originator: bool = user_data.is_originator;
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_rosctr_user_data_response(this);
 } &byteorder=bigendian;
 
@@ -394,13 +410,13 @@ type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data) = record {
 ##      s7comm.log file as defined in main.zeek. Passes processing to CPU Functions if function
 ##      code is CPU-Functions.
 ## ------------------------------------------------------------------------------------------------
-type ROSCTR_User_Data_Request(user_data: ROSCTR_User_Data) = record {
+type ROSCTR_User_Data_Request(user_data: ROSCTR_User_Data, is_orig: bool) = record {
     parameter_data:             case (user_data.function_code & 0x0f) of {
         0x04                -> cpu_function:    CPU_Functions(user_data, 0x00, 0x00);
         default             -> unknown:         bytestring &restofdata;
     };
 } &let {
-    is_originator: bool = user_data.is_originator;
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_rosctr_user_data_request(this);
 } &byteorder=bigendian;
 
