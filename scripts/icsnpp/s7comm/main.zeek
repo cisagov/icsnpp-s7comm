@@ -14,6 +14,7 @@ export{
     redef enum Log::ID += { LOG_COTP, 
                             LOG_S7COMM, 
                             LOG_S7COMM_READ_SZL, 
+                            LOG_S7COMM_UPLOAD_DOWNLOAD, 
                             LOG_S7COMM_PLUS };
 
     ###############################################################################################
@@ -67,6 +68,26 @@ export{
     global log_s7comm_read_szl: event(rec: S7COMM_READ_SZL);
 
     ###############################################################################################
+    ###################  S7COMM_UPLOAD_DOWNLOAD -> s7comm_upload_download.log  ####################
+    ###############################################################################################
+    type S7COMM_UPLOAD_DOWNLOAD: record {
+        ts                      : time      &log;   # Timestamp of Event
+        uid                     : string    &log;   # Zeek Unique ID for Connection
+        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        rosctr                  : string    &log;   # Remote Operating Service Control Name
+        pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
+        function_name           : string    &log;   # Upload/Download Function Name
+        function_status         : string    &log;   # Function Return Status
+        session_id              : count     &log;   # Session ID
+        blocklength             : count     &log;   # Length of Block to Upload/Download
+        filename                : string    &log;   # Filename to Upload/Download
+        block_type              : string    &log;   # Block Type to Upload/Download
+        block_number            : string    &log;   # Block Number to Upload/Download
+        destination_filesystem  : string    &log;   # Destination Filesystem to Upload/Download
+    };
+    global log_s7comm_upload_download: event(rec: S7COMM_UPLOAD_DOWNLOAD);
+
+    ###############################################################################################
     ###############################  S7COMM_PLUS -> s7comm_plus.log  ##############################
     ###############################################################################################
     type S7COMM_PLUS: record {
@@ -104,6 +125,10 @@ event zeek_init() &priority=5 {
     Log::create_stream(S7COMM::LOG_S7COMM_READ_SZL, [$columns=S7COMM_READ_SZL,
                                             $ev=log_s7comm_read_szl,
                                             $path="s7comm_read_szl"]);
+
+    Log::create_stream(S7COMM::LOG_S7COMM_UPLOAD_DOWNLOAD, [$columns=S7COMM_UPLOAD_DOWNLOAD,
+                                            $ev=log_s7comm_upload_download,
+                                            $path="s7comm_upload_download"]);
 
     Log::create_stream(S7COMM::LOG_S7COMM_PLUS, [$columns=S7COMM_PLUS,
                                             $ev=log_s7comm_plus,
@@ -157,7 +182,7 @@ event s7comm_header(c: connection,
     s7comm_item$rosctr_name = rosctr_types[rosctr];
     s7comm_item$pdu_reference = pdu_reference;
 
-    if ( function_code != 0xff )
+    if ( function_code != UINT8_MAX )
     {
         # Formatting for function is different for User-Data functions
         if ( rosctr == 0x07 ) 
@@ -179,7 +204,7 @@ event s7comm_header(c: connection,
         }
     }
  
-    if ( subfunction != 0xff )
+    if ( subfunction != UINT8_MAX )
     {
         s7comm_item$subfunction_code = fmt("0x%02x", subfunction);
 
@@ -220,7 +245,7 @@ event s7comm_header(c: connection,
     }
 
     # Print error classes and error codes if they exist
-    if ( error_code != 0xff && error_code != 0xffff )
+    if ( error_code != UINT8_MAX && error_code != UINT16_MAX )
     {
         if ( error_class != 0xfe )
         {
@@ -267,6 +292,52 @@ event s7comm_read_szl(c: connection,
     s7comm_read_szl_item$return_code_name = s7comm_userdata_return_codes[return_code];
 
     Log::write(LOG_S7COMM_READ_SZL, s7comm_read_szl_item);
+}
+
+###################################################################################################
+#########  Defines logging of s7comm_upload_download event -> s7comm_upload_download.log  #########
+###################################################################################################
+
+event s7comm_upload_download(c: connection,
+                             rosctr: count,
+                             pdu_reference: count,
+                             function_code: count,
+                             function_status: count,
+                             session_id: count,
+                             blocklength: count,
+                             filename: string,
+                             block_type: string,
+                             block_number: string,
+                             destination_filesystem: string) {
+
+    local s7comm_upload_download_item: S7COMM_UPLOAD_DOWNLOAD;
+
+    s7comm_upload_download_item$ts  = network_time();
+    s7comm_upload_download_item$uid = c$uid;
+    s7comm_upload_download_item$id  = c$id;
+
+    s7comm_upload_download_item$rosctr = rosctr_types[rosctr];
+    s7comm_upload_download_item$pdu_reference = pdu_reference;
+    s7comm_upload_download_item$function_name = s7comm_functions[function_code];
+    
+    if ( function_status != UINT8_MAX )
+        s7comm_upload_download_item$function_status = fmt("0x%02x", function_status);
+
+    if ( session_id != UINT32_MAX )
+        s7comm_upload_download_item$session_id = session_id;
+
+    if ( blocklength != UINT16_MAX )
+        s7comm_upload_download_item$blocklength = blocklength;
+
+    if ( filename != "" )
+    {
+        s7comm_upload_download_item$filename = filename;
+        s7comm_upload_download_item$block_type = s7comm_block_types[block_type];
+        s7comm_upload_download_item$block_number = block_number;
+        s7comm_upload_download_item$destination_filesystem = s7comm_destination_filesystem[destination_filesystem];
+    }
+
+    Log::write(LOG_S7COMM_UPLOAD_DOWNLOAD, s7comm_upload_download_item);
 }
 
 ###################################################################################################

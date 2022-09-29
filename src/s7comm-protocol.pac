@@ -221,8 +221,14 @@ type ROSCTR_Job(is_orig: bool) = record {
     data_length:        uint16;
     function_code:      uint8;
     function_analysis:  case function_code of {
-        PLC_CONTROL     -> plc_control:     ROSCTR_Job_PLC_Control(is_orig, pdu_reference);
-        default         -> additional_data: bytestring &restofdata;
+        PLC_CONTROL         -> plc_control:         ROSCTR_Job_PLC_Control(is_orig, pdu_reference);
+        START_UPLOAD        -> start_upload:        ROSCTR_Job_Start_Upload(is_orig, pdu_reference);
+        UPLOAD              -> upload:              ROSCTR_Job_Upload(is_orig, pdu_reference);
+        END_UPLOAD          -> end_upload:          ROSCTR_Job_End_Upload(is_orig, pdu_reference);
+        REQUEST_DOWNLOAD    -> request_download:    ROSCTR_Job_Request_Download(is_orig, pdu_reference);
+        DOWNLOAD_BLOCK      -> download_block:      ROSCTR_Job_Download_Block(is_orig, pdu_reference);
+        DOWNLOAD_ENDED      -> download_ended:      ROSCTR_Job_Download_Ended(is_orig, pdu_reference);
+        default             -> additional_data: bytestring &restofdata;
     };
 } &let {
     is_originator: bool = is_orig;
@@ -231,7 +237,7 @@ type ROSCTR_Job(is_orig: bool) = record {
 
 ## -------------------------------------ROSCTR-Job-PLC-Control-------------------------------------
 ## Message Description:
-##      S7comm header data for ROSCTR Job with function PLC Control.
+##      S7comm data for ROSCTR Job with function PLC Control.
 ## Message Format:
 ##      - header_h:             uint16              -> Static header (high short)
 ##      - header_m:             uint8               -> Static header (middle byte)
@@ -259,7 +265,7 @@ type ROSCTR_Job_PLC_Control(is_orig: bool, pdu_reference: uint16) = record {
 
 ## -------------------------------------------ROSCTR-ACK-------------------------------------------
 ## Message Description:
-##      S7comm header data for ROSCTR ACK .
+##      S7comm header data for ROSCTR ACK.
 ## Message Format:
 ##      - redundancy_id:        uint16              -> Reserved
 ##      - pdu_reference:        uint16              -> Reference ID Used to Link Requests to
@@ -317,7 +323,15 @@ type ROSCTR_ACK_Data(is_orig: bool) = record {
         0               -> no_parameter:        empty;
         default         -> parameter_data:      uint8;
     };
-    additional_data:    bytestring &restofdata;
+    function_analysis:  case parameter_data of {
+        START_UPLOAD        -> start_upload:        ROSCTR_ACK_Data_Start_Upload(is_orig, pdu_reference);
+        UPLOAD              -> upload:              ROSCTR_ACK_Data_Upload(is_orig, pdu_reference);
+        END_UPLOAD          -> end_upload:          ROSCTR_ACK_Data_End_Upload(is_orig, pdu_reference);
+        REQUEST_DOWNLOAD    -> request_download:    ROSCTR_ACK_Data_Request_Download(is_orig, pdu_reference);
+        DOWNLOAD_BLOCK      -> download_block:      ROSCTR_ACK_Data_Download_Block(is_orig, pdu_reference);
+        DOWNLOAD_ENDED      -> download_ended:      ROSCTR_ACK_Data_Download_Ended(is_orig, pdu_reference);
+        default             -> additional_data: bytestring &restofdata;
+    };
 } &let {
     is_originator: bool = is_orig;
     error_class:        uint8 = error_data.error_class;
@@ -483,6 +497,264 @@ type Read_SZL(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_u
 type S7Comm_Error = record {
     error_class:        uint8;
     error_code:         uint8;
+} &byteorder=bigendian;
+
+## -------------------------------------ROSCTR-Job-Start-Upload------------------------------------
+## Message Description:
+##      S7comm data for ROSCTR Job with function: Start Upload.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:            uint32              -> Session ID - set in ack-data packet
+##      - filename_length:      uint8               -> Length of filename (in bytes)
+##      - filename:             bytestring          -> Filename
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_Job_Start_Upload(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:          uint32;
+    filename_length:    uint8;
+    filename:           bytestring &length=filename_length;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_job_start_upload(this);
+} &byteorder=bigendian;
+
+## ---------------------------------------ROSCTR-Job-Upload----------------------------------------
+## Message Description:
+##      S7comm data for ROSCTR Job with function: Upload.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:           uint32              -> Session ID - set in ack-data packet
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_Job_Upload(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:         uint32;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_job_upload(this);
+} &byteorder=bigendian;
+
+## -------------------------------------ROSCTR-Job-End-Upload--------------------------------------
+## Message Description:
+##      S7comm data for ROSCTR Job with function: End Upload.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:           uint32              -> Session ID - set in ack-data packet
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_Job_End_Upload(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:         uint32;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_job_end_upload(this);
+} &byteorder=bigendian;
+
+## -----------------------------------ROSCTR-Job-Request-Download----------------------------------
+## Message Description:
+##      S7comm data for ROSCTR Job with function: Request Download.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:           uint32              -> Session ID - always set to 0x00000000
+##      - filename_length:      uint8               -> Length of filename (in bytes)
+##      - filename:             bytestring          -> Filename
+##      - parameter_length:     uint8               -> Parameter Length
+##      - parameter_data:       bytestring          -> Parameter Data
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_Job_Request_Download(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:         uint32;
+    filename_length:    uint8;
+    filename:           bytestring &length=filename_length;
+    parameter_length:   uint8;
+    parameter_data:     bytestring &length=parameter_length;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_job_request_download(this);
+} &byteorder=bigendian;
+
+## ------------------------------------ROSCTR-Job-Download-Block-----------------------------------
+## Message Description:
+##      S7comm data for ROSCTR Job with function: Download Block.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:           uint32              -> Session ID - always set to 0x00000000
+##      - filename_length:      uint8               -> Length of filename (in bytes)
+##      - filename:             bytestring          -> Filename
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_Job_Download_Block(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:         uint32;
+    filename_length:    uint8;
+    filename:           bytestring &length=filename_length;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_job_download_block(this);
+} &byteorder=bigendian;
+
+## ------------------------------------ROSCTR-Job-Download-Ended-----------------------------------
+## Message Description:
+##      S7comm data for ROSCTR Job with function: Download Ended.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:           uint32              -> Session ID - always set to 0x00000000
+##      - filename_length:      uint8               -> Length of filename (in bytes)
+##      - filename:             bytestring          -> Filename
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_Job_Download_Ended(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:         uint32;
+    filename_length:    uint8;
+    filename:           bytestring &length=filename_length;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_job_download_ended(this);
+} &byteorder=bigendian;
+
+
+## -----------------------------------ROSCTR-ACK-Data-Start-Upload---------------------------------
+## Message Description:
+##      S7comm data for ROSCTR ACK-Data with function: Start Upload.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - reserved:             uint16              -> Reserved
+##      - session_id:           uint32              -> Session ID - set in this packet
+##      - blocklength_length:   uint8               -> Length of blocklength (in bytes)
+##      - blocklength:          bytestring          -> Block length (as ASCII for some reason)
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_ACK_Data_Start_Upload(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    reserved:           uint16;
+    session_id:         uint32;
+    blocklength_length: uint8;
+    blocklength:        bytestring &length=blocklength_length;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_ack_data_start_upload(this);
+} &byteorder=bigendian;
+
+## -------------------------------------ROSCTR-ACK-Data-Upload-------------------------------------
+## Message Description:
+##      S7comm data for ROSCTR ACK-Data with function: Upload.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - blocklength:          uint16              -> Block length
+##      - reserved:             uint16              -> Reserved - always 0x00fb
+##      - data:                 bytestring          -> Block Data
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_ACK_Data_Upload(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    blocklength:        uint16;
+    reserved:           uint16;
+    data:               bytestring &length=blocklength;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_ack_data_upload(this);
+} &byteorder=bigendian;
+
+
+## -----------------------------------ROSCTR-ACK-Data-End-Upload-----------------------------------
+## Message Description:
+##      S7comm data for ROSCTR ACK-Data with function: End Upload.
+## Message Format:
+##      - N/A
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_ACK_Data_End_Upload(is_orig: bool, pdu_reference: uint16) = record {
+    data:               bytestring &restofdata;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_ack_data_end_upload(this);
+} &byteorder=bigendian;
+
+## --------------------------------ROSCTR-ACK-Data-Request-Download--------------------------------
+## Message Description:
+##      S7comm data for ROSCTR ACK-Data with function: Request Download.
+## Message Format:
+##      - N/A
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_ACK_Data_Request_Download(is_orig: bool, pdu_reference: uint16) = record {
+    data:               bytestring &restofdata;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_ack_data_request_download(this);
+} &byteorder=bigendian;
+
+## ----------------------------------ROSCTR-ACK-Data-Download-Block--------------------------------
+## Message Description:
+##      S7comm data for ROSCTR ACK-Data with function: Download Block.
+## Message Format:
+##      - function_status:      uint8               -> Function Status
+##      - blocklength:          uint16              -> Block length
+##      - reserved:             uint16              -> Reserved - always 0x00fb
+##      - data:                 bytestring          -> Block Data
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_ACK_Data_Download_Block(is_orig: bool, pdu_reference: uint16) = record {
+    function_status:    uint8;
+    blocklength:        uint16;
+    reserved:           uint16;
+    data:               bytestring &length=blocklength;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_ack_data_download_block(this);
+} &byteorder=bigendian;
+
+## ----------------------------------ROSCTR-ACK-Data-Download-Ended--------------------------------
+## Message Description:
+##      S7comm data for ROSCTR ACK-Data with function: Download Ended.
+## Message Format:
+##      - N/A
+## Protocol Parsing:
+##      Sends data to s7comm_upload_download event. By default this is then logged to the
+##      s7comm_upload_download.log as defined in main.zeek
+## ------------------------------------------------------------------------------------------------
+type ROSCTR_ACK_Data_Download_Ended(is_orig: bool, pdu_reference: uint16) = record {
+    data:               bytestring &restofdata;
+} &let {
+    is_originator: bool = is_orig;
+    deliver: bool = $context.flow.process_rosctr_ack_data_download_ended(this);
 } &byteorder=bigendian;
 
 ###################################################################################################

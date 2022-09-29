@@ -69,6 +69,36 @@ event s7comm_read_szl%(c: connection,
                        szl_id: count,
                        szl_index: count%);
 
+## -------------------------------------s7comm_upload_download-------------------------------------
+## Event Description:
+##      Event is generated for all s7comm upload and download functions and contains relevant
+##      upload and download data
+## Event Data:
+##      - rosctr:                   count       -> Remote Operating Service Control (see rosctr_types in consts.zeek)
+##      - pdu_reference:            count       -> Reference ID Used to Link Requests to Responses
+##      - function_code:            count       -> Parameter Function Code (see s7comm_functions in consts.zeek)
+##      - function_status:          count       -> Function Return Status
+##      - session_id:               count       -> Session ID
+##      - blocklength:              count       -> Length of Block to Upload/Download
+##      - filename:                 string      -> Filename of Block to Upload/Download (Contains information in block_type, block_number, and destination_filesystem)
+##      - block_type:               string      -> Block Type to Upload/Download (see s7comm_block_types in consts.zeek)
+##      - block_number:             string      -> Block Number to Upload/Download
+##      - destination_filesystem:   string      -> Destination Filesystem of Upload/Download (Active or Passive)
+## Default Output:
+##      Writes to log file s7comm_upload_download.log
+## ------------------------------------------------------------------------------------------------
+event s7comm_upload_download%(c: connection,
+                              rosctr: count,
+                              pdu_reference: count,
+                              function_code: count,
+                              function_status: count,
+                              session_id: count,
+                              blocklength: count,
+                              filename: string,
+                              block_type: string,
+                              block_number: string,
+                              destination_filesystem: string%);
+
 ## ---------------------------------------s7comm-plus-header---------------------------------------
 ## Event Description:
 ##      Event is generated for all s7comm-plus packets and contains relevant s7comm-plus header data

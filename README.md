@@ -8,10 +8,11 @@ ICSNPP-S7COMM is a Zeek plugin for parsing and logging fields within the s7comm,
 
 This plugin was developed to be fully customizable, so if you would like to drill down into specific packets and log certain variables, add the logging functionality to [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek). The functions within [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek) and [src/events.bif](src/events.bif) should prove to be a good guide on how to add new logging functionality.
 
-This parser currently produces four log files. These log files are defined in [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek).
+This parser currently produces five log files. These log files are defined in [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek).
 * cotp.log
 * s7comm.log
 * s7comm_read_szl.log
+* s7comm_upload_download.log
 * s7comm_plus.log
 
 For additional information on these log files, see the *Logging Capabilities* section below.
@@ -141,6 +142,36 @@ This log captures information for the common S7Comm Read-SZL function. This data
 | szl_index             | string    | SZL Index (in hex)                                        |
 | return_code           | string    | Return Code (in hex)                                      |
 | return_code_name      | string    | Meaning of Return Code                                    |
+
+### S7COMM Upload-Download Log (s7comm_upload_download.log)
+
+#### Overview
+
+This log captures information for the S7Comm Upload and Download functions (see list below). This data is logged to **s7comm_upload_download.log**.:
+* Start Upload
+* Upload
+* End Upload
+* Request Download
+* Download Block
+* Download Ended
+
+#### Fields Captured
+
+| Field                  | Type      | Description                                              |
+| ---------------------- |-----------|----------------------------------------------------------|
+| ts                     | time      | Timestamp                                                |
+| uid                    | string    | Unique ID for this Connection                            |
+| id                     | conn_id   | Default Zeek Connection Info (IP addresses, ports)       |
+| rosctr                 | count     | Remote Operating Service Control                         |
+| pdu_reference          | count     | Reference ID Used to Link Requests to Responses          |
+| function_code          | count     | Parameter Function Code                                  |
+| function_status        | count     | Function Status                                          |
+| session_id             | count     | Session ID                                               |
+| blocklength            | count     | Length of Block to Upload/Download                       |
+| filename               | string    | Filename of Block to Upload/Download                     |
+| block_type             | string    | Block Type to Upload/Download                            |
+| block_number           | string    | Block Number to Upload/Download                          |
+| destination_filesystem | string    | Destination Filesystem of Upload/Download                |
 
 ### S7COMM-PLUS Log (s7comm_plus.log)
 

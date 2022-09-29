@@ -12,6 +12,7 @@ module S7COMM;
 export {
     const UINT32_MAX = 0xFFFFFFFF;
     const UINT16_MAX = 0xFFFF;
+    const UINT8_MAX = 0xFF;
 
     ###############################################################################################
     ######################################  COTP PDU Types  #######################################
@@ -247,6 +248,27 @@ export {
         [0xb3] = "Module diagnostic information (data record 1), logical address",
         [0xb4] = "Diagnostic data of a DP slave",
     } &default = function(n: count): string {return "Unknown"; };
+
+    ###############################################################################################
+    ####################################  S7comm Block Types   ####################################
+    ###############################################################################################
+    const s7comm_block_types = {
+        ["08"] = "Organization Block",
+        ["0A"] = "Data Block",
+        ["0B"] = "System Data Block",
+        ["0C"] = "Function",
+        ["0D"] = "System Function",
+        ["0E"] = "Function Block",
+        ["0F"] = "System Function Block",
+    } &default = function(n: string): string {return "Unknown"; };
+
+    ###############################################################################################
+    ##############################  S7comm Destination Filesystem   ###############################
+    ###############################################################################################
+    const s7comm_destination_filesystem = {
+        ["P"] = "Passive",
+        ["A"] = "Active",
+    } &default = function(n: string): string {return "Unknown"; };
 
     ###############################################################################################
     ####################################  S7comm-plus Opcodes  ####################################

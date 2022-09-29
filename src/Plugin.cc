@@ -20,7 +20,7 @@ zeek::plugin::Configuration Plugin::Configure()
     config.name = "ICSNPP::S7COMM";
     config.description = "S7comm, S7comm-plus, and COTP Protocol analyzer";
     config.version.major = 1;
-    config.version.minor = 1;
+    config.version.minor = 2;
 
     return config;
 }

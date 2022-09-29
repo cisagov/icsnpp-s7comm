@@ -8,7 +8,31 @@
 ## Copyright (c) 2022 Battelle Energy Alliance, LLC.  All rights reserved.
 
 %header{
+    typedef struct S7comm_Filename {
+        string filename;
+        string block_type;
+        string block_number;
+        string destination_filesystem;
+
+        S7comm_Filename( const_bytestring data ){
+            filename = "";
+            block_type = "";
+            block_number = "";
+            destination_filesystem = data[8];
+
+            for ( int32 i = 0; i < data.length(); ++i )
+            {
+                filename += data[i];
+                if ( i == 1 || i == 2 )
+                    block_type += data[i];
+                else if ( i > 2 && i < 8 )
+                    block_number += data[i];
+            }
+        }
+    }S7comm_Filename;
+
     string get_string(const_bytestring data);
+    int get_number(const_bytestring data);
 %}
 
 %code{
@@ -19,6 +43,15 @@
             str += data[i];
 
         return str;
+    }
+
+    int get_number(const_bytestring data){
+        char str[32];
+
+        for ( int32 i = 0; i < data.length(); ++i )
+            str[i] = (char)data[i];
+
+        return atoi(str);
     }
 %}
 
@@ -201,6 +234,310 @@ refine flow S7COMM_Flow += {
                                                             ${data.szl_id},
                                                             ${data.szl_index});
                 }
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ########## Process data for rosctr_job_start_upload -> s7comm_upload_download event  ##########
+    ###############################################################################################
+    function process_rosctr_job_start_upload(data: ROSCTR_Job_Start_Upload): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                S7comm_Filename s7comm_filename = {${data.filename}};
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               JOB,
+                                                               pdu_reference,
+                                                               START_UPLOAD,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.filename),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_type),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_number),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.destination_filesystem));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ############# Process data for rosctr_job_upload -> s7comm_upload_download event  #############
+    ###############################################################################################
+    function process_rosctr_job_upload(data: ROSCTR_Job_Upload): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               JOB,
+                                                               pdu_reference,
+                                                               UPLOAD,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ########### Process data for rosctr_job_end_upload -> s7comm_upload_download event  ###########
+    ###############################################################################################
+    function process_rosctr_job_end_upload(data: ROSCTR_Job_End_Upload): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               JOB,
+                                                               pdu_reference,
+                                                               END_UPLOAD,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ######## Process data for rosctr_job_request_download -> s7comm_upload_download event  ########
+    ###############################################################################################
+    function process_rosctr_job_request_download(data: ROSCTR_Job_Request_Download): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                S7comm_Filename s7comm_filename = {${data.filename}};
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               JOB,
+                                                               pdu_reference,
+                                                               REQUEST_DOWNLOAD,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.filename),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_type),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_number),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.destination_filesystem));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ######### Process data for rosctr_job_download_block -> s7comm_upload_download event  #########
+    ###############################################################################################
+    function process_rosctr_job_download_block(data: ROSCTR_Job_Download_Block): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                S7comm_Filename s7comm_filename = {${data.filename}};
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               JOB,
+                                                               pdu_reference,
+                                                               DOWNLOAD_BLOCK,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.filename),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_type),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_number),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.destination_filesystem));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ######### Process data for rosctr_job_download_ended -> s7comm_upload_download event  #########
+    ###############################################################################################
+    function process_rosctr_job_download_ended(data: ROSCTR_Job_Download_Ended): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                S7comm_Filename s7comm_filename = {${data.filename}};
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               JOB,
+                                                               pdu_reference,
+                                                               DOWNLOAD_ENDED,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.filename),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_type),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.block_number),
+                                                               zeek::make_intrusive<zeek::StringVal>(s7comm_filename.destination_filesystem));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ####### Process data for rosctr_ack_data_start_upload -> s7comm_upload_download event  ########
+    ###############################################################################################
+    function process_rosctr_ack_data_start_upload(data: ROSCTR_ACK_Data_Start_Upload): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               ACK_DATA,
+                                                               pdu_reference,
+                                                               START_UPLOAD,
+                                                               ${data.function_status},
+                                                               ${data.session_id},
+                                                               get_number(${data.blocklength}),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ########## Process data for rosctr_ack_data_upload -> s7comm_upload_download event  ###########
+    ###############################################################################################
+    function process_rosctr_ack_data_upload(data: ROSCTR_ACK_Data_Upload): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               ACK_DATA,
+                                                               pdu_reference,
+                                                               UPLOAD,
+                                                               ${data.function_status},
+                                                               0xffffffff,
+                                                               ${data.blocklength},
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ######## Process data for rosctr_ack_data_end_upload -> s7comm_upload_download event  #########
+    ###############################################################################################
+    function process_rosctr_ack_data_end_upload(data: ROSCTR_ACK_Data_End_Upload): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               ACK_DATA,
+                                                               pdu_reference,
+                                                               END_UPLOAD,
+                                                               0xff,
+                                                               0xffffffff,
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ##### Process data for rosctr_ack_data_request_download -> s7comm_upload_download event  ######
+    ###############################################################################################
+    function process_rosctr_ack_data_request_download(data: ROSCTR_ACK_Data_Request_Download): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               ACK_DATA,
+                                                               pdu_reference,
+                                                               REQUEST_DOWNLOAD,
+                                                               0xff,
+                                                               0xffffffff,
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ####### Process data for rosctr_ack_data_download_block -> s7comm_upload_download event  ######
+    ###############################################################################################
+    function process_rosctr_ack_data_download_block(data: ROSCTR_ACK_Data_Download_Block): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               ACK_DATA,
+                                                               pdu_reference,
+                                                               DOWNLOAD_BLOCK,
+                                                               0xff,
+                                                               0xffffffff,
+                                                               ${data.blocklength},
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
+            }
+            return true;
+        %}
+
+    ###############################################################################################
+    ####### Process data for rosctr_ack_data_download_ended -> s7comm_upload_download event  ######
+    ###############################################################################################
+    function process_rosctr_ack_data_download_ended(data: ROSCTR_ACK_Data_Download_Ended): bool
+        %{
+            if ( ::s7comm_upload_download )
+            {
+                // PDU Reference is little endian so we need to do an endian swap
+                uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
+                zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
+                                                               connection()->zeek_analyzer()->Conn(),
+                                                               ACK_DATA,
+                                                               pdu_reference,
+                                                               DOWNLOAD_ENDED,
+                                                               0xff,
+                                                               0xffffffff,
+                                                               0xffff,
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""),
+                                                               zeek::make_intrusive<zeek::StringVal>(""));
             }
             return true;
         %}
