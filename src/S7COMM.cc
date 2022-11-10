@@ -43,7 +43,6 @@ namespace zeek::analyzer::s7comm {
       }
       catch(const binpac::Exception& e)
       {
-          ProtocolViolation(util::fmt("Binpac exception: %s", e.c_msg()));
       }
   }
 

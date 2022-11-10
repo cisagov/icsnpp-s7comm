@@ -193,6 +193,10 @@ This log captures s7comm-plus header information for every s7comm-plus packet an
 | function_code         | string    | Opcode Function Code (in hex)                             |
 | function_name         | string    | Opcode Function Name                                      |
 
+## S7COMM File Extraction
+
+S7COMM contains two functions for sending and receiving files: Upload and Download-Block. This plugin will extract files sent via these two functions and pass the extracted files to Zeek's file analysis framework.
+
 ## ICSNPP Packages
 
 All ICSNPP Packages:

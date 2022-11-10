@@ -102,6 +102,10 @@ export{
         function_name           : string    &log;   # Opcode Function Name
     };
     global log_s7comm_plus: event(rec: S7COMM_PLUS);
+
+    redef record connection += {
+        filename    : string &optional;
+    };
 }
 
 # All these protocols operate on TCP port 102
@@ -331,6 +335,7 @@ event s7comm_upload_download(c: connection,
 
     if ( filename != "" )
     {
+        c$filename = filename;
         s7comm_upload_download_item$filename = filename;
         s7comm_upload_download_item$block_type = s7comm_block_types[block_type];
         s7comm_upload_download_item$block_number = block_number;

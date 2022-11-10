@@ -7,6 +7,10 @@
 ##
 ## Copyright (c) 2022 Battelle Energy Alliance, LLC.  All rights reserved.
 
+%extern{
+    #include "zeek/file_analysis/Manager.h"
+%}
+
 %header{
     typedef struct S7comm_Filename {
         string filename;
@@ -424,6 +428,12 @@ refine flow S7COMM_Flow += {
         %{
             if ( ::s7comm_upload_download )
             {
+                zeek::file_mgr->DataIn(${data.data}.begin(),
+                                       ${data.blocklength},
+                                       connection()->zeek_analyzer()->GetAnalyzerTag(),
+                                       connection()->zeek_analyzer()->Conn(),
+                                       ${data.is_originator});
+
                 // PDU Reference is little endian so we need to do an endian swap
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
@@ -449,6 +459,10 @@ refine flow S7COMM_Flow += {
         %{
             if ( ::s7comm_upload_download )
             {
+                zeek::file_mgr->EndOfFile(connection()->zeek_analyzer()->GetAnalyzerTag(),
+                                          connection()->zeek_analyzer()->Conn(),
+                                          ${data.is_originator});
+
                 // PDU Reference is little endian so we need to do an endian swap
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
@@ -499,6 +513,12 @@ refine flow S7COMM_Flow += {
         %{
             if ( ::s7comm_upload_download )
             {
+                zeek::file_mgr->DataIn(${data.data}.begin(),
+                                       ${data.blocklength},
+                                       connection()->zeek_analyzer()->GetAnalyzerTag(),
+                                       connection()->zeek_analyzer()->Conn(),
+                                       ${data.is_originator});
+
                 // PDU Reference is little endian so we need to do an endian swap
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
@@ -524,6 +544,10 @@ refine flow S7COMM_Flow += {
         %{
             if ( ::s7comm_upload_download )
             {
+                zeek::file_mgr->EndOfFile(connection()->zeek_analyzer()->GetAnalyzerTag(),
+                                          connection()->zeek_analyzer()->Conn(),
+                                          ${data.is_originator});
+
                 // PDU Reference is little endian so we need to do an endian swap
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
