@@ -3,7 +3,7 @@ Github URL: https://github.com/cisagov/ICSNPP
 Licensed under BSD 3-Part License.
 
 
-© 2022 Battelle Energy Alliance, LLC
+© 2023 Battelle Energy Alliance, LLC
 ALL RIGHTS RESERVED
 
 Prepared by Battelle Energy Alliance, LLC

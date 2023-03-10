@@ -238,7 +238,7 @@ Idaho National Laboratory is a cutting edge research facility which is a constan
 
 ### License
 
-Copyright 2022 Battelle Energy Alliance, LLC
+Copyright 2023 Battelle Energy Alliance, LLC
 
 Licensed under the 3-Part BSD (the "License");
 you may not use this file except in compliance with the License.

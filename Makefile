@@ -1,7 +1,7 @@
 #
 # Convenience Makefile providing a few common top-level targets.
 #
-# Copyright (c) 2022 Battelle Energy Alliance, LLC.  All rights reserved.
+# Copyright (c) 2023 Battelle Energy Alliance, LLC.  All rights reserved.
 
 cmake_build_dir=build
 arch=`uname -s | tr A-Z a-z`-`uname -m`
