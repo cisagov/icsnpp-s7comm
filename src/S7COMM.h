@@ -2,6 +2,12 @@
 
 #pragma once
 
+#if __has_include(<zeek/zeek-version.h>)
+#include <zeek/zeek-version.h>
+#else
+#include <zeek/zeek-config.h>
+#endif
+
 #include <zeek/analyzer/protocol/tcp/TCP.h>
 
 #include "s7comm_pac.h"
