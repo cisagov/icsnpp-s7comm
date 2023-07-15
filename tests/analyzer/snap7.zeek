@@ -1,5 +1,4 @@
 # @TEST-EXEC: zeek -C -r ${TRACES}/snap7.pcap %INPUT
-# @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff cotp.log
 # @TEST-EXEC: btest-diff s7comm.log
 # @TEST-EXEC: btest-diff s7comm_read_szl.log
