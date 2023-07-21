@@ -25,6 +25,10 @@ export{
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
         is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   # Source IP Address
+        source_p                : port      &log;   # Source Port
+        destination_h           : addr      &log;   # Destination IP Address
+        destination_p           : port      &log;   # Destination Port
         pdu_code                : string    &log;   # COTP PDU Type Code (in hex)
         pdu_name                : string    &log;   # COTP PDU Type Name
     };
@@ -38,6 +42,10 @@ export{
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
         is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   # Source IP Address
+        source_p                : port      &log;   # Source Port
+        destination_h           : addr      &log;   # Destination IP Address
+        destination_p           : port      &log;   # Destination Port
         rosctr_code             : count     &log;   # Remote Operating Service Control Code (in hex)
         rosctr_name             : string    &log;   # Remote Operating Service Control Name
         pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
@@ -57,6 +65,11 @@ export{
         ts                      : time      &log;   # Timestamp of Event
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   # Source IP Address
+        source_p                : port      &log;   # Source Port
+        destination_h           : addr      &log;   # Destination IP Address
+        destination_p           : port      &log;   # Destination Port
         pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
         method                  : string    &log;   # Request or Response
         szl_id                  : string    &log;   # SZL ID (in hex)
@@ -74,6 +87,11 @@ export{
         ts                      : time      &log;   # Timestamp of Event
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   # Source IP Address
+        source_p                : port      &log;   # Source Port
+        destination_h           : addr      &log;   # Destination IP Address
+        destination_p           : port      &log;   # Destination Port
         rosctr                  : string    &log;   # Remote Operating Service Control Name
         pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
         function_name           : string    &log;   # Upload/Download Function Name
@@ -95,6 +113,10 @@ export{
         uid                     : string    &log;   # Zeek Unique ID for Connection
         id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
         is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   # Source IP Address
+        source_p                : port      &log;   # Source Port
+        destination_h           : addr      &log;   # Destination IP Address
+        destination_p           : port      &log;   # Destination Port
         version                 : count     &log;   # S7comm-plus Version
         opcode                  : string    &log;   # Opcode Code (in hex)
         opcode_name             : string    &log;   # Opcode Name
@@ -155,6 +177,20 @@ event cotp(c: connection,
     cotp_item$id  = c$id;
     cotp_item$is_orig  = is_orig;
 
+    if(is_orig)
+    {
+        cotp_item$source_h = c$id$orig_h;
+        cotp_item$source_p = c$id$orig_p;
+        cotp_item$destination_h = c$id$resp_h;
+        cotp_item$destination_p = c$id$resp_p;
+    }else
+    {
+        cotp_item$source_h = c$id$resp_h;
+        cotp_item$source_p = c$id$resp_p;
+        cotp_item$destination_h = c$id$orig_h;
+        cotp_item$destination_p = c$id$orig_p;
+    }
+
     cotp_item$pdu_code = fmt("0x%02x", pdu);
     cotp_item$pdu_name = cotp_pdu_types[pdu];
 
@@ -181,6 +217,20 @@ event s7comm_header(c: connection,
     s7comm_item$uid = c$uid;
     s7comm_item$id  = c$id;
     s7comm_item$is_orig  = is_orig;
+
+    if(is_orig)
+    {
+        s7comm_item$source_h = c$id$orig_h;
+        s7comm_item$source_p = c$id$orig_p;
+        s7comm_item$destination_h = c$id$resp_h;
+        s7comm_item$destination_p = c$id$resp_p;
+    }else
+    {
+        s7comm_item$source_h = c$id$resp_h;
+        s7comm_item$source_p = c$id$resp_p;
+        s7comm_item$destination_h = c$id$orig_h;
+        s7comm_item$destination_p = c$id$orig_p;
+    }
 
     s7comm_item$rosctr_code = rosctr;
     s7comm_item$rosctr_name = rosctr_types[rosctr];
@@ -275,6 +325,7 @@ event s7comm_header(c: connection,
 ################  Defines logging of s7comm_read_szl event -> s7comm_read_szl.log  ################
 ###################################################################################################
 event s7comm_read_szl(c: connection,
+                      is_orig: bool,
                       pdu_reference: count,
                       method: count,
                       return_code: count,
@@ -286,6 +337,21 @@ event s7comm_read_szl(c: connection,
     s7comm_read_szl_item$ts  = network_time();
     s7comm_read_szl_item$uid = c$uid;
     s7comm_read_szl_item$id  = c$id;
+    s7comm_read_szl_item$is_orig  = is_orig;
+
+    if(is_orig)
+    {
+        s7comm_read_szl_item$source_h = c$id$orig_h;
+        s7comm_read_szl_item$source_p = c$id$orig_p;
+        s7comm_read_szl_item$destination_h = c$id$resp_h;
+        s7comm_read_szl_item$destination_p = c$id$resp_p;
+    }else
+    {
+        s7comm_read_szl_item$source_h = c$id$resp_h;
+        s7comm_read_szl_item$source_p = c$id$resp_p;
+        s7comm_read_szl_item$destination_h = c$id$orig_h;
+        s7comm_read_szl_item$destination_p = c$id$orig_p;
+    }
 
     s7comm_read_szl_item$pdu_reference = pdu_reference;
     s7comm_read_szl_item$method = s7comm_userdata_method[method];
@@ -303,6 +369,7 @@ event s7comm_read_szl(c: connection,
 ###################################################################################################
 
 event s7comm_upload_download(c: connection,
+                             is_orig: bool,
                              rosctr: count,
                              pdu_reference: count,
                              function_code: count,
@@ -319,6 +386,21 @@ event s7comm_upload_download(c: connection,
     s7comm_upload_download_item$ts  = network_time();
     s7comm_upload_download_item$uid = c$uid;
     s7comm_upload_download_item$id  = c$id;
+    s7comm_upload_download_item$is_orig  = is_orig;
+
+    if(is_orig)
+    {
+        s7comm_upload_download_item$source_h = c$id$orig_h;
+        s7comm_upload_download_item$source_p = c$id$orig_p;
+        s7comm_upload_download_item$destination_h = c$id$resp_h;
+        s7comm_upload_download_item$destination_p = c$id$resp_p;
+    }else
+    {
+        s7comm_upload_download_item$source_h = c$id$resp_h;
+        s7comm_upload_download_item$source_p = c$id$resp_p;
+        s7comm_upload_download_item$destination_h = c$id$orig_h;
+        s7comm_upload_download_item$destination_p = c$id$orig_p;
+    }
 
     s7comm_upload_download_item$rosctr = rosctr_types[rosctr];
     s7comm_upload_download_item$pdu_reference = pdu_reference;
@@ -360,7 +442,22 @@ event s7comm_plus_header(c: connection,
     s7comm_plus_item$ts  = network_time();
     s7comm_plus_item$uid = c$uid;
     s7comm_plus_item$id  = c$id;
+    
     s7comm_plus_item$is_orig  = is_orig;
+
+    if(is_orig)
+    {
+        s7comm_plus_item$source_h = c$id$orig_h;
+        s7comm_plus_item$source_p = c$id$orig_p;
+        s7comm_plus_item$destination_h = c$id$resp_h;
+        s7comm_plus_item$destination_p = c$id$resp_p;
+    }else
+    {
+        s7comm_plus_item$source_h = c$id$resp_h;
+        s7comm_plus_item$source_p = c$id$resp_p;
+        s7comm_plus_item$destination_h = c$id$orig_h;
+        s7comm_plus_item$destination_p = c$id$orig_p;
+    }
 
     s7comm_plus_item$version = version;
     s7comm_plus_item$opcode = fmt("0x%02x", opcode);

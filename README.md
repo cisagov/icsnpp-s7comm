@@ -89,14 +89,18 @@ This log captures COTP information for every COTP packet and logs it to **cotp.l
 
 #### Fields Captured
 
-| Field             | Type      | Description                                               |
-| ----------------- |-----------|-----------------------------------------------------------| 
-| ts                | time      | Timestamp                                                 |
-| uid               | string    | Unique ID for this Connection                             |
-| id                | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
-| is_orig           | bool      | True if the packet is sent from the originator            |
-| pdu_code          | string    | COTP PDU Type Code (in hex)                               |
-| pdu_name          | string    | COTP PDU Name                                             |
+| Field             | Type      | Description                                                       |
+| ----------------- |-----------|-------------------------------------------------------------------| 
+| ts                | time      | Timestamp                                                         |
+| uid               | string    | Unique ID for this Connection                                     |
+| id                | conn_id   | Default Zeek Connection Info (IP addresses, ports)                |
+| is_orig               | bool      | True if the packet is sent from the originator                |
+| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
+| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
+| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
+| pdu_code          | string    | COTP PDU Type Code (in hex)                                       |
+| pdu_name          | string    | COTP PDU Name                                                     |
 
 ### S7COMM Header Log (s7comm.log)
 
@@ -106,21 +110,25 @@ This log captures s7comm header information for every s7comm packet and logs it 
 
 #### Fields Captured
 
-| Field                 | Type      | Description                                               |
-| --------------------- |-----------|-----------------------------------------------------------|
-| ts                    | time      | Timestamp                                                 |
-| uid                   | string    | Unique ID for this Connection                             |
-| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
-| is_orig               | bool      | True if the packet is sent from the originator            |
-| rosctr_code           | count     | Remote Operating Service Control Code (in hex)            |
-| rosctr_name           | string    | Remote Operating Service Control Name                     |
-| pdu_reference         | count     | Reference ID Used to Link Requests to Responses           |
-| function_code         | string    | Parameter Function Code (in hex)                          |
-| function_name         | string    | Parameter Function Name                                   |
-| subfunction_code      | string    | User-Data Subfunction Code (in hex)                       |
-| subfunction_name      | string    | User-Data Subfunction Name                                |
-| error_class           | string    | Error Class Name                                          |
-| error_code            | string    | Error Code within Error Class                             |
+| Field                 | Type      | Description                                                   |
+| --------------------- |-----------|---------------------------------------------------------------|
+| ts                    | time      | Timestamp                                                     |
+| uid                   | string    | Unique ID for this Connection                                 |
+| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)            |
+| is_orig               | bool      | True if the packet is sent from the originator                |
+| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
+| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
+| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
+| rosctr_code           | count     | Remote Operating Service Control Code (in hex)                |
+| rosctr_name           | string    | Remote Operating Service Control Name                         |
+| pdu_reference         | count     | Reference ID Used to Link Requests to Responses               |
+| function_code         | string    | Parameter Function Code (in hex)                              |
+| function_name         | string    | Parameter Function Name                                       |
+| subfunction_code      | string    | User-Data Subfunction Code (in hex)                           |
+| subfunction_name      | string    | User-Data Subfunction Name                                    |
+| error_class           | string    | Error Class Name                                              |
+| error_code            | string    | Error Code within Error Class                                 |
 
 ### S7COMM Read-SZL Log (s7comm_read_szl.log)
 
@@ -130,18 +138,23 @@ This log captures information for the common S7Comm Read-SZL function. This data
 
 #### Fields Captured
 
-| Field                 | Type      | Description                                               |
-| --------------------- |-----------|-----------------------------------------------------------|
-| ts                    | time      | Timestamp                                                 |
-| uid                   | string    | Unique ID for this Connection                             |
-| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
-| pdu_reference         | count     | Reference ID Used to Link Requests to Responses           |
-| method                | string    | Request or Response                                       |
-| szl_id                | string    | SZL ID (in hex)                                           |
-| szl_id_name           | string    | Meaning of SZL ID                                         |
-| szl_index             | string    | SZL Index (in hex)                                        |
-| return_code           | string    | Return Code (in hex)                                      |
-| return_code_name      | string    | Meaning of Return Code                                    |
+| Field                 | Type      | Description                                                   |
+| --------------------- |-----------|---------------------------------------------------------------|
+| ts                    | time      | Timestamp                                                     |
+| uid                   | string    | Unique ID for this Connection                                 |
+| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)            |
+| is_orig               | bool      | True if the packet is sent from the originator                |
+| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
+| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
+| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
+| pdu_reference         | count     | Reference ID Used to Link Requests to Responses               |
+| method                | string    | Request or Response                                           |
+| szl_id                | string    | SZL ID (in hex)                                               |
+| szl_id_name           | string    | Meaning of SZL ID                                             |
+| szl_index             | string    | SZL Index (in hex)                                            |
+| return_code           | string    | Return Code (in hex)                                          |
+| return_code_name      | string    | Meaning of Return Code                                        |
 
 ### S7COMM Upload-Download Log (s7comm_upload_download.log)
 
@@ -157,21 +170,26 @@ This log captures information for the S7Comm Upload and Download functions (see 
 
 #### Fields Captured
 
-| Field                  | Type      | Description                                              |
-| ---------------------- |-----------|----------------------------------------------------------|
-| ts                     | time      | Timestamp                                                |
-| uid                    | string    | Unique ID for this Connection                            |
-| id                     | conn_id   | Default Zeek Connection Info (IP addresses, ports)       |
-| rosctr                 | count     | Remote Operating Service Control                         |
-| pdu_reference          | count     | Reference ID Used to Link Requests to Responses          |
-| function_code          | count     | Parameter Function Code                                  |
-| function_status        | count     | Function Status                                          |
-| session_id             | count     | Session ID                                               |
-| blocklength            | count     | Length of Block to Upload/Download                       |
-| filename               | string    | Filename of Block to Upload/Download                     |
-| block_type             | string    | Block Type to Upload/Download                            |
-| block_number           | string    | Block Number to Upload/Download                          |
-| destination_filesystem | string    | Destination Filesystem of Upload/Download                |
+| Field                  | Type      | Description                                                  |
+| ---------------------- |-----------|--------------------------------------------------------------|
+| ts                     | time      | Timestamp                                                    |
+| uid                    | string    | Unique ID for this Connection                                |
+| id                     | conn_id   | Default Zeek Connection Info (IP addresses, ports)           |
+| is_orig               | bool      | True if the packet is sent from the originator                |
+| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
+| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
+| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
+| rosctr                 | count     | Remote Operating Service Control                             |
+| pdu_reference          | count     | Reference ID Used to Link Requests to Responses              |
+| function_code          | count     | Parameter Function Code                                      |
+| function_status        | count     | Function Status                                              |
+| session_id             | count     | Session ID                                                   |
+| blocklength            | count     | Length of Block to Upload/Download                           |
+| filename               | string    | Filename of Block to Upload/Download                         |
+| block_type             | string    | Block Type to Upload/Download                                |
+| block_number           | string    | Block Number to Upload/Download                              |
+| destination_filesystem | string    | Destination Filesystem of Upload/Download                    |
 
 ### S7COMM-PLUS Log (s7comm_plus.log)
 
@@ -181,17 +199,65 @@ This log captures s7comm-plus header information for every s7comm-plus packet an
 
 #### Fields Captured
 
-| Field                 | Type      | Description                                               |
-| --------------------- |-----------|-----------------------------------------------------------|
-| ts                    | time      | Timestamp                                                 |
-| uid                   | string    | Unique ID for this Connection                             |
-| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)        |
-| is_orig               | bool      | True if the packet is sent from the originator            |
-| version               | count     | S7comm-plus Version                                       |
-| opcode                | string    | Opcode Code (in hex)                                      |
-| opcode_name           | string    | Opcode Name                                               |
-| function_code         | string    | Opcode Function Code (in hex)                             |
-| function_name         | string    | Opcode Function Name                                      |
+| Field                 | Type      | Description                                                   |
+| --------------------- |-----------|---------------------------------------------------------------|
+| ts                    | time      | Timestamp                                                     |
+| uid                   | string    | Unique ID for this Connection                                 |
+| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)            |
+| is_orig               | bool      | True if the packet is sent from the originator                |
+| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
+| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
+| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
+| version               | count     | S7comm-plus Version                                           |
+| opcode                | string    | Opcode Code (in hex)                                          |
+| opcode_name           | string    | Opcode Name                                                   |
+| function_code         | string    | Opcode Function Code (in hex)                                 |
+| function_name         | string    | Opcode Function Name                                          |
+
+### Source and Destination Fields
+
+#### Overview
+
+Zeek's typical behavior is to focus on and log packets from the originator and not log packets from the responder. However, most ICS protocols contain useful information in the responses, so the ICSNPP parsers log both originator and responses packets. Zeek's default behavior, defined in its `id` struct, is to never switch these originator/responder roles which leads to inconsistencies and inaccuracies when looking at ICS traffic that logs responses.
+
+The default Zeek `id` struct contains the following logged fields:
+* id.orig_h (Original Originator/Source Host)
+* id.orig_p (Original Originator/Source Port)
+* id.resp_h (Original Responder/Destination Host)
+* id.resp_p (Original Responder/Destination Port)
+
+Additionally, the `is_orig` field is a boolean field that is set to T (True) when the id_orig fields are the true originators/source and F (False) when the id_resp fields are the true originators/source.
+
+To not break existing platforms that utilize the default `id` struct and `is_orig` field functionality, the ICSNPP team has added four new fields to each log file instead of changing Zeek's default behavior. These four new fields provide the accurate information regarding source and destination IP addresses and ports:
+* source_h (True Originator/Source Host)
+* source_p (True Originator/Source Port)
+* destination_h (True Responder/Destination Host)
+* destination_p (True Responder/Destination Port)
+
+The pseudocode below shows the relationship between the `id` struct, `is_orig` field, and the new `source` and `destination` fields.
+
+```
+if is_orig == True
+    source_h == id.orig_h
+    source_p == id.orig_p
+    destination_h == id.resp_h
+    destination_p == id.resp_p
+if is_orig == False
+    source_h == id.resp_h
+    source_p == id.resp_p
+    destination_h == id.orig_h
+    destination_p == id.orig_p
+```
+
+#### Example
+
+The table below shows an example of these fields in the log files. The first log in the table represents a Modbus request from 192.168.1.10 -> 192.168.1.200 and the second log represents a Modbus reply from 192.168.1.200 -> 192.168.1.10. As shown in the table below, the `id` structure lists both packets as having the same originator and responder, but the `source` and `destination` fields reflect the true source and destination of these packets.
+
+| id.orig_h    | id.orig_p | id.resp_h     | id.resp_p | is_orig | source_h      | source_p | destination_h | destination_p |
+| ------------ | --------- |---------------|-----------|---------|---------------|----------|---------------|-------------- |
+| 192.168.1.10 | 47785     | 192.168.1.200 | 502       | T       | 192.168.1.10  | 47785    | 192.168.1.200 | 502           |
+| 192.168.1.10 | 47785     | 192.168.1.200 | 502       | F       | 192.168.1.200 | 502      | 192.168.1.10  | 47785         |
 
 ## S7COMM File Extraction
 

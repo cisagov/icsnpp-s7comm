@@ -25,7 +25,7 @@
 ##      S7comm_Packet as long as there is data following tpkt and cotp.
 ## ------------------------------------------------------------------------------------------------
 type S7COMM_PDU(is_orig: bool) = record {
-    tpkt:               TPKT;
+    tpkt:               TPKT(is_orig);
     cotp:               COTP(is_orig);
     data:               case (tpkt.length - cotp.length) of {
         5               -> other:       bytestring &restofdata;
@@ -53,11 +53,12 @@ type S7COMM_PDU(is_orig: bool) = record {
 ## Protocol Parsing:
 ##      Sends header information to the tpkt event. By default this is not logged
 ## ------------------------------------------------------------------------------------------------
-type TPKT = record {
+type TPKT(is_orig: bool) = record {
     version:            uint8;
     reserved:           uint8;
     length:             uint16;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_tpkt(this);
 } &byteorder=bigendian;
 
@@ -78,16 +79,16 @@ type COTP(is_orig: bool) = record {
     length:             uint8;
     pdu_data:           uint8;
     cotp_data:          case (pdu_data >> 4) of {
-        EXPEDITED_DATA                  -> ed:      COTP_Expedited_Data(length);
-        EXPEDITED_DATA_ACKNOWLEDGEMENT  -> ea:      COTP_Expedited_Data_Acknowledgement(length);
-        REJECT                          -> rj:      COTP_Reject(length);
-        DATA_ACKNOWLEDGEMENT            -> ak:      COTP_Data_Acknowledgement(length);
-        TPDU_ERROR                      -> er:      COTP_Error(length);
-        DISCONNECT_REQUEST              -> dr:      COTP_Disconnect_Request(length);
-        DISCONNECT_CONFIRM              -> dc:      COTP_Disconnect_Confirm(length);
-        CONNECTION_CONFIRM              -> cc:      COTP_Connection_Confirm(length);
-        CONNECTION_REQUEST              -> cr:      COTP_Connection_Request(length);
-        DATA                            -> dt:      COTP_Data(length);
+        EXPEDITED_DATA                  -> ed:      COTP_Expedited_Data(is_orig, length);
+        EXPEDITED_DATA_ACKNOWLEDGEMENT  -> ea:      COTP_Expedited_Data_Acknowledgement(is_orig, length);
+        REJECT                          -> rj:      COTP_Reject(is_orig, length);
+        DATA_ACKNOWLEDGEMENT            -> ak:      COTP_Data_Acknowledgement(is_orig, length);
+        TPDU_ERROR                      -> er:      COTP_Error(is_orig, length);
+        DISCONNECT_REQUEST              -> dr:      COTP_Disconnect_Request(is_orig, length);
+        DISCONNECT_CONFIRM              -> dc:      COTP_Disconnect_Confirm(is_orig, length);
+        CONNECTION_CONFIRM              -> cc:      COTP_Connection_Confirm(is_orig, length);
+        CONNECTION_REQUEST              -> cr:      COTP_Connection_Request(is_orig, length);
+        DATA                            -> dt:      COTP_Data(is_orig, length);
         default                         -> unknown: bytestring &length = length-1;
     };
 } &let {
@@ -405,7 +406,7 @@ type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data, is_orig: bool) = rec
     last_data_unit:         uint8;
     error_code:             uint16;
     parameter_data:             case (user_data.function_code & 0x0f) of {
-        0x04                -> cpu_function:    CPU_Functions(user_data, data_reference_id, last_data_unit);
+        0x04                -> cpu_function:    CPU_Functions(is_orig, user_data, data_reference_id, last_data_unit);
         default             -> unknown:         bytestring &restofdata;
     };
 } &let {
@@ -426,7 +427,7 @@ type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data, is_orig: bool) = rec
 ## ------------------------------------------------------------------------------------------------
 type ROSCTR_User_Data_Request(user_data: ROSCTR_User_Data, is_orig: bool) = record {
     parameter_data:             case (user_data.function_code & 0x0f) of {
-        0x04                -> cpu_function:    CPU_Functions(user_data, 0x00, 0x00);
+        0x04                -> cpu_function:    CPU_Functions(is_orig, user_data, 0x00, 0x00);
         default             -> unknown:         bytestring &restofdata;
     };
 } &let {
@@ -451,9 +452,9 @@ type ROSCTR_User_Data_Request(user_data: ROSCTR_User_Data, is_orig: bool) = reco
 ## Protocol Parsing:
 ##      Passes processing to Read_SZL if subfunction is read_szl.
 ## ------------------------------------------------------------------------------------------------
-type CPU_Functions(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
+type CPU_Functions(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
     subfunction_code:           case user_data.subfunction of {
-        0x01                -> read_szl:        Read_SZL(user_data, data_reference_id, last_data_unit);
+        0x01                -> read_szl:        Read_SZL(is_orig, user_data, data_reference_id, last_data_unit);
         default             -> other:           bytestring &restofdata;
     };
 }
@@ -473,7 +474,7 @@ type CPU_Functions(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_d
 ##      Sends read szl information to the s7comm_read_szl event. By default this is then logged to the
 ##      s7comm_read_szl.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
-type Read_SZL(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
+type Read_SZL(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
     return_code:                uint8;
     transport_size:             uint8;
     data_length:                uint16;
@@ -481,6 +482,7 @@ type Read_SZL(user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_u
     szl_index:                  uint16;
     data:                       bytestring &length=data_length-4;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_s7comm_read_szl(this);
 } &byteorder=bigendian;
 
@@ -771,10 +773,11 @@ type ROSCTR_ACK_Data_Download_Ended(is_orig: bool, pdu_reference: uint16) = reco
 ## Protocol Parsing:
 ##      Sends header information to the cotp_data event. By default this is not logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Data(length: uint8) = record {
+type COTP_Data(is_orig: bool, length: uint8) = record {
     tpdu_and_eot:       uint8;
     variable_data:      bytestring &length = length-2;
 } &let {
+    is_originator: bool = is_orig;
     tpdu_sequence_num:  uint8 = tpdu_and_eot & 0x7f;
     eot:                uint8 = tpdu_and_eot >> 7;
     deliver: bool = $context.flow.process_cotp_data(this);
@@ -787,12 +790,13 @@ type COTP_Data(length: uint8) = record {
 ##      Sends header information to the cotp_connection_request event. By default this is not 
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Connection_Request(length: uint8) = record {
+type COTP_Connection_Request(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     src_reference:      uint16;
     class_and_option:   uint8;
     variable_data:      bytestring &length = length-6;
 } &let {
+    is_originator: bool = is_orig;
     class_id:               uint8 = class_and_option >> 4;
     extended_format:        uint8 = (class_and_option >> 1) & 0x1;
     explicit_flow_control:  uint8 = class_and_option & 0x1;
@@ -806,12 +810,13 @@ type COTP_Connection_Request(length: uint8) = record {
 ##      Sends header information to the cotp_connection_confirm event. By default this is not 
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Connection_Confirm(length: uint8) = record {
+type COTP_Connection_Confirm(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     src_reference:      uint16;
     class_and_option:   uint8;
     variable_data:      bytestring &length = length-6;
 } &let {
+    is_originator: bool = is_orig;
     class_id:               uint8 = class_and_option >> 4;
     extended_format:        uint8 = (class_and_option >> 1) & 0x1;
     explicit_flow_control:  uint8 = class_and_option & 0x1;
@@ -833,12 +838,13 @@ type COTP_Connection_Confirm(length: uint8) = record {
 ##      Sends header information to the cotp_disconnect_request event. By default this is not 
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Disconnect_Request(length: uint8) = record {
+type COTP_Disconnect_Request(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     src_reference:      uint16;
     reason:             uint8;
     variable_data:      bytestring &length = length-6;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_cotp_disconnect_request(this);
 } &byteorder=bigendian;
 
@@ -849,11 +855,12 @@ type COTP_Disconnect_Request(length: uint8) = record {
 ##      Sends header information to the cotp_disconnect_confirm event. By default this is not 
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Disconnect_Confirm(length: uint8) = record {
+type COTP_Disconnect_Confirm(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     src_reference:      uint16;
     variable_data:      bytestring &length = length-5;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_cotp_disconnect_confirm(this);
 } &byteorder=bigendian;
 
@@ -863,11 +870,12 @@ type COTP_Disconnect_Confirm(length: uint8) = record {
 ## Protocol Parsing:
 ##      Sends header information to the cotp_expedited_data event. By default this is not logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Expedited_Data(length: uint8) = record {
+type COTP_Expedited_Data(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     tpdu_and_eot:       uint8;
     variable_data:      bytestring &length = length-4;
 } &let {
+    is_originator: bool = is_orig;
     tpdu_id:            uint8 = tpdu_and_eot & 0x7f;
     eot:                uint8 = tpdu_and_eot >> 7;
     deliver: bool = $context.flow.process_cotp_expedited_data(this);
@@ -880,11 +888,12 @@ type COTP_Expedited_Data(length: uint8) = record {
 ##      Sends header information to the cotp_data_acknowledgement event. By default this is not 
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Data_Acknowledgement(length: uint8) = record {
+type COTP_Data_Acknowledgement(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     next_tpdu:          uint8;
     variable_data:      bytestring &length = length-4;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_cotp_data_acknowledgement(this);
 } &byteorder=bigendian;
 
@@ -895,11 +904,12 @@ type COTP_Data_Acknowledgement(length: uint8) = record {
 ##      Sends header information to the cotp_expedited_data_acknowledgement event. By default this
 ##      is not logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Expedited_Data_Acknowledgement(length: uint8) = record {
+type COTP_Expedited_Data_Acknowledgement(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     tpdu_id:            uint8;
     variable_data:      bytestring &length = length-4;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_cotp_expedited_data_acknowledgement(this);
 } &byteorder=bigendian;
 
@@ -909,11 +919,12 @@ type COTP_Expedited_Data_Acknowledgement(length: uint8) = record {
 ## Protocol Parsing:
 ##      Sends header information to the cotp_reject event. By default this is not logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Reject(length: uint8) = record {
+type COTP_Reject(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     next_tpdu:          uint8;
     variable_data:      bytestring &length = length-4;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_cotp_reject(this);
 } &byteorder=bigendian;
 
@@ -923,11 +934,12 @@ type COTP_Reject(length: uint8) = record {
 ## Protocol Parsing:
 ##      Sends header information to the cotp_error event. By default this is not logged.
 ## ------------------------------------------------------------------------------------------------
-type COTP_Error(length: uint8) = record {
+type COTP_Error(is_orig: bool, length: uint8) = record {
     dst_reference:      uint16;
     error_code:         uint8;
     variable_data:      bytestring &length = length-4;
 } &let {
+    is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_cotp_error(this);
 } &byteorder=bigendian;
 

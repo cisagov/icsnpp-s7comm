@@ -89,15 +89,15 @@ refine flow S7COMM_Flow += {
                     // PDU Reference is little endian so we need to do an endian swap
                     uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                     zeek::BifEvent::enqueue_s7comm_header(connection()->zeek_analyzer(),
-                                                        connection()->zeek_analyzer()->Conn(),
-                                                        ${data.is_originator},
-                                                        JOB,
-                                                        pdu_reference,
-                                                        ${data.function_code},
-                                                        0xff,
-                                                        zeek::make_intrusive<zeek::StringVal>(""),
-                                                        0xff,
-                                                        0xff);
+                                                          connection()->zeek_analyzer()->Conn(),
+                                                          ${data.is_originator},
+                                                          JOB,
+                                                          pdu_reference,
+                                                          ${data.function_code},
+                                                          0xff,
+                                                          zeek::make_intrusive<zeek::StringVal>(""),
+                                                          0xff,
+                                                          0xff);
                 }
             }
             return true;
@@ -232,6 +232,7 @@ refine flow S7COMM_Flow += {
                     uint16 pdu_reference = (${data.user_data.pdu_reference} >> 8) | (${data.user_data.pdu_reference} << 8);
                     zeek::BifEvent::enqueue_s7comm_read_szl(connection()->zeek_analyzer(),
                                                             connection()->zeek_analyzer()->Conn(),
+                                                            ${data.is_originator},
                                                             pdu_reference,
                                                             ${data.user_data.method},
                                                             ${data.return_code},
@@ -254,6 +255,7 @@ refine flow S7COMM_Flow += {
                 S7comm_Filename s7comm_filename = {${data.filename}};
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                JOB,
                                                                pdu_reference,
                                                                START_UPLOAD,
@@ -279,6 +281,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                JOB,
                                                                pdu_reference,
                                                                UPLOAD,
@@ -304,6 +307,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                JOB,
                                                                pdu_reference,
                                                                END_UPLOAD,
@@ -330,6 +334,7 @@ refine flow S7COMM_Flow += {
                 S7comm_Filename s7comm_filename = {${data.filename}};
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                JOB,
                                                                pdu_reference,
                                                                REQUEST_DOWNLOAD,
@@ -356,6 +361,7 @@ refine flow S7COMM_Flow += {
                 S7comm_Filename s7comm_filename = {${data.filename}};
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                JOB,
                                                                pdu_reference,
                                                                DOWNLOAD_BLOCK,
@@ -382,6 +388,7 @@ refine flow S7COMM_Flow += {
                 S7comm_Filename s7comm_filename = {${data.filename}};
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                JOB,
                                                                pdu_reference,
                                                                DOWNLOAD_ENDED,
@@ -407,6 +414,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                ACK_DATA,
                                                                pdu_reference,
                                                                START_UPLOAD,
@@ -438,6 +446,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                ACK_DATA,
                                                                pdu_reference,
                                                                UPLOAD,
@@ -467,6 +476,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                ACK_DATA,
                                                                pdu_reference,
                                                                END_UPLOAD,
@@ -492,6 +502,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                ACK_DATA,
                                                                pdu_reference,
                                                                REQUEST_DOWNLOAD,
@@ -523,6 +534,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                ACK_DATA,
                                                                pdu_reference,
                                                                DOWNLOAD_BLOCK,
@@ -552,6 +564,7 @@ refine flow S7COMM_Flow += {
                 uint16 pdu_reference = (${data.pdu_reference} >> 8) | (${data.pdu_reference} << 8);
                 zeek::BifEvent::enqueue_s7comm_upload_download(connection()->zeek_analyzer(),
                                                                connection()->zeek_analyzer()->Conn(),
+                                                               ${data.is_originator},
                                                                ACK_DATA,
                                                                pdu_reference,
                                                                DOWNLOAD_ENDED,
@@ -597,6 +610,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_tpkt(connection()->zeek_analyzer(),
                                              connection()->zeek_analyzer()->Conn(),
+                                             ${data.is_originator},
                                              ${data.version},
                                              ${data.reserved},
                                              ${data.length});
@@ -613,6 +627,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_data(connection()->zeek_analyzer(),
                                                   connection()->zeek_analyzer()->Conn(),
+                                                  ${data.is_originator},
                                                   ${data.tpdu_sequence_num},
                                                   ${data.eot},
                                                   to_stringval(${data.variable_data}));
@@ -629,6 +644,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_connection_request(connection()->zeek_analyzer(),
                                                                 connection()->zeek_analyzer()->Conn(),
+                                                                ${data.is_originator},
                                                                 ${data.dst_reference},
                                                                 ${data.src_reference},
                                                                 ${data.class_id},
@@ -648,6 +664,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_connection_confirm(connection()->zeek_analyzer(),
                                                                 connection()->zeek_analyzer()->Conn(),
+                                                                ${data.is_originator},
                                                                 ${data.dst_reference},
                                                                 ${data.src_reference},
                                                                 ${data.class_id},
@@ -667,6 +684,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_disconnect_request(connection()->zeek_analyzer(),
                                                                 connection()->zeek_analyzer()->Conn(),
+                                                                ${data.is_originator},
                                                                 ${data.dst_reference},
                                                                 ${data.src_reference},
                                                                 ${data.reason},
@@ -684,6 +702,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_disconnect_confirm(connection()->zeek_analyzer(),
                                                                 connection()->zeek_analyzer()->Conn(),
+                                                                ${data.is_originator},
                                                                 ${data.dst_reference},
                                                                 ${data.src_reference},
                                                                 to_stringval(${data.variable_data}));
@@ -700,6 +719,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_expedited_data(connection()->zeek_analyzer(),
                                                             connection()->zeek_analyzer()->Conn(),
+                                                            ${data.is_originator},
                                                             ${data.dst_reference},
                                                             ${data.tpdu_id},
                                                             ${data.eot},
@@ -717,6 +737,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_data_acknowledgement(connection()->zeek_analyzer(),
                                                                  connection()->zeek_analyzer()->Conn(),
+                                                                 ${data.is_originator},
                                                                  ${data.dst_reference},
                                                                  ${data.next_tpdu},
                                                                  to_stringval(${data.variable_data}));
@@ -733,6 +754,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_expedited_data_acknowledgement(connection()->zeek_analyzer(),
                                                                             connection()->zeek_analyzer()->Conn(),
+                                                                            ${data.is_originator},
                                                                             ${data.dst_reference},
                                                                             ${data.tpdu_id},
                                                                             to_stringval(${data.variable_data}));
@@ -749,6 +771,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_reject(connection()->zeek_analyzer(),
                                                     connection()->zeek_analyzer()->Conn(),
+                                                    ${data.is_originator},
                                                     ${data.dst_reference},
                                                     ${data.next_tpdu},
                                                     to_stringval(${data.variable_data}));
@@ -765,6 +788,7 @@ refine flow S7COMM_Flow += {
             {
                 zeek::BifEvent::enqueue_cotp_error(connection()->zeek_analyzer(),
                                                    connection()->zeek_analyzer()->Conn(),
+                                                   ${data.is_originator},
                                                    ${data.dst_reference},
                                                    ${data.error_code},
                                                    to_stringval(${data.variable_data}));

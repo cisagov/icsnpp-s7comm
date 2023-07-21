@@ -63,6 +63,7 @@ event s7comm_header%(c: connection,
 ##      Writes to log file s7comm.log
 ## ------------------------------------------------------------------------------------------------
 event s7comm_read_szl%(c: connection,
+                       is_orig: bool,
                        pdu_reference: count,
                        method: count,
                        return_code: count,
@@ -88,6 +89,7 @@ event s7comm_read_szl%(c: connection,
 ##      Writes to log file s7comm_upload_download.log
 ## ------------------------------------------------------------------------------------------------
 event s7comm_upload_download%(c: connection,
+                              is_orig: bool,
                               rosctr: count,
                               pdu_reference: count,
                               function_code: count,
@@ -126,16 +128,19 @@ event s7comm_plus_header%(c: connection,
 ###################################################################################################
 
 event tpkt%(c: connection, 
+            is_orig: bool,
             version: count, 
             reserved: count, 
             length: count%);
 
 event cotp_data%(c: connection,
+                 is_orig: bool,
                  tpdu_sequence_num: count,
                  eot: count, 
                  variable_data: string%);
 
 event cotp_connection_request%(c: connection,
+                               is_orig: bool,
                                dst_reference: count,
                                src_reference: count,
                                class_id: count,
@@ -144,6 +149,7 @@ event cotp_connection_request%(c: connection,
                                variable_data: string%);
 
 event cotp_connection_confirm%(c: connection,
+                               is_orig: bool,
                                dst_reference: count,
                                src_reference: count,
                                class_id: count,
@@ -152,38 +158,45 @@ event cotp_connection_confirm%(c: connection,
                                variable_data: string%);
 
 event cotp_disconnect_request%(c: connection,
+                               is_orig: bool,
                                dst_reference: count,
                                src_reference: count,
                                reason: count,
                                variable_data: string%);
 
 event cotp_disconnect_confirm%(c: connection,
+                               is_orig: bool,
                                dst_reference: count,
                                src_reference: count,
                                variable_data: string%);
 
 event cotp_expedited_data%(c: connection,
+                           is_orig: bool,
                            dst_reference: count,
                            tpdu_id: count,
                            eot: count,
                            variable_data: string%);
 
 event cotp_data_acknowledgement%(c: connection,
+                                 is_orig: bool,
                                  dst_reference: count,
                                  next_tpdu: count,
                                  variable_data: string%);
 
 event cotp_expedited_data_acknowledgement%(c: connection,
+                                           is_orig: bool,
                                            dst_reference: count,
                                            tpdu_id: count,
                                            variable_data: string%);
 
 event cotp_reject%(c: connection,
+                   is_orig: bool,
                    dst_reference: count,
                    next_tpdu: count,
                    variable_data: string%);
 
 event cotp_error%(c: connection,
+                  is_orig: bool,
                   dst_reference: count,
                   error_code: count,
                   variable_data: string%);
