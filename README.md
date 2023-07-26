@@ -6,7 +6,7 @@ Industrial Control Systems Network Protocol Parsers (ICSNPP) - s7comm, s7comm-pl
 
 ICSNPP-S7COMM is a Zeek plugin for parsing and logging fields within the s7comm, s7comm-plus, and COTP protocols.
 
-This plugin was developed to be fully customizable, so if you would like to drill down into specific packets and log certain variables, add the logging functionality to [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek). The functions within [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek) and [src/events.bif](src/events.bif) should prove to be a good guide on how to add new logging functionality.
+This plugin was developed to be fully customizable. To drill down into specific packets and log certain variables, users can add the logging functionality to [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek). The functions within [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek) and [src/events.bif](src/events.bif) are good guides for adding new logging functionality.
 
 This parser currently produces five log files. These log files are defined in [scripts/icsnpp/s7comm/main.zeek](scripts/icsnpp/s7comm/main.zeek).
 * cotp.log
@@ -28,12 +28,12 @@ zkg refresh
 zkg install icsnpp-s7comm
 ```
 
-If this package is installed from ZKG it will be added to the available plugins. This can be tested by running `zeek -N`. If installed correctly you will see `ICSNPP::S7COMM`.
+If this package is installed from ZKG, it will be added to the available plugins. This can be tested by running `zeek -N`. If installed correctly, you will see `ICSNPP::S7COMM`.
 
-If you have ZKG configured to load packages (see @load packages in quickstart guide), this plugin and scripts will automatically be loaded and ready to go.
+If ZKG is configured to load packages (see @load packages in quickstart guide), this plugin and these scripts will automatically be loaded and ready to go.
 [ZKG Quickstart Guide](https://docs.zeek.org/projects/package-manager/en/stable/quickstart.html)
 
-If you are not using site/local.zeek or another site installation of Zeek and just want to run this package on a packet capture you can add `icsnpp/s7comm` to your command to run this plugin's scripts on the packet capture:
+If users are not using site/local.zeek or another site installation of Zeek and want to run this package on a packet capture, they can add `icsnpp/s7comm` to the command to run this plugin's scripts on the packet capture:
 
 ```bash
 git clone https://github.com/cisagov/icsnpp-s7comm.git
@@ -58,22 +58,22 @@ export ZEEK_PLUGIN_PATH=$PWD/build/
 zeek -N # Ensure everything compiled correctly and you are able to see ICSNPP::S7COMM
 ```
 
-Once you have tested the functionality locally and it appears to have compiled correctly, you can install it system-wide:
+Once users have tested the functionality locally and it appears to have compiled correctly, they can install it system-wide:
 ```bash
 sudo make install
 unset ZEEK_PLUGIN_PATH
 zeek -N # Ensure everything installed correctly and you are able to see ICSNPP::S7COMM
 ```
 
-To run this plugin in a site deployment you will need to add the line `@load icsnpp/s7comm` to your `site/local.zeek` file in order to load this plugin's scripts.
+To run this plugin in a site deployment, users will need to add the line `@load icsnpp/s7comm` to the `site/local.zeek` file to load this plugin's scripts.
 
-If you are not using site/local.zeek or another site installation of Zeek and just want to run this package on a packet capture you can add `icsnpp/s7comm` to your command to run this plugin's scripts on the packet capture:
+If users are not using site/local.zeek or another site installation of Zeek and want to run this package on a packet capture, they can add `icsnpp/s7comm` to the command to run this plugin's scripts on the packet capture:
 
 ```bash
 zeek -Cr icsnpp-s7comm/tests/traces/s7comm_plus_example.pcap icsnpp/s7comm
 ```
 
-If you want to deploy this on an already existing Zeek implementation and you don't want to build the plugin on the machine, you can extract the ICSNPP_S7comm.tgz file to the directory of the established ZEEK_PLUGIN_PATH (default is `${ZEEK_INSTALLATION_DIR}/lib/zeek/plugins/`).
+If users want to deploy this on an already existing Zeek implementation and don't want to build the plugin on the machine, they can extract the ICSNPP_S7comm.tgz file to the directory of the established ZEEK_PLUGIN_PATH (default is `${ZEEK_INSTALLATION_DIR}/lib/zeek/plugins/`).
 
 ```bash
 tar xvzf build/ICSNPP_S7comm.tgz -C $ZEEK_PLUGIN_PATH 
@@ -92,15 +92,15 @@ This log captures COTP information for every COTP packet and logs it to **cotp.l
 | Field             | Type      | Description                                                       |
 | ----------------- |-----------|-------------------------------------------------------------------| 
 | ts                | time      | Timestamp                                                         |
-| uid               | string    | Unique ID for this Connection                                     |
-| id                | conn_id   | Default Zeek Connection Info (IP addresses, ports)                |
-| is_orig               | bool      | True if the packet is sent from the originator                |
-| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
-| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
-| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
-| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
-| pdu_code          | string    | COTP PDU Type Code (in hex)                                       |
-| pdu_name          | string    | COTP PDU Name                                                     |
+| uid               | string    | Unique ID for this connection                                     |
+| id                | conn_id   | Default Zeek connection info (IP addresses, ports)                |
+| is_orig           | bool      | True if the packet is sent from the originator                    |
+| source_h          | address   | Source IP address (see *Source and Destination Fields*)           |
+| source_p          | port      | Source port (see *Source and Destination Fields*)                 |
+| destination_h     | address   | Destination IP address (see *Source and Destination Fields*)      |
+| destination_p     | port      | Destination port (see *Source and Destination Fields*)            |
+| pdu_code          | string    | COTP PDU type code (in hex)                                       |
+| pdu_name          | string    | COTP PDU name                                                     |
 
 ### S7COMM Header Log (s7comm.log)
 
@@ -113,22 +113,22 @@ This log captures s7comm header information for every s7comm packet and logs it 
 | Field                 | Type      | Description                                                   |
 | --------------------- |-----------|---------------------------------------------------------------|
 | ts                    | time      | Timestamp                                                     |
-| uid                   | string    | Unique ID for this Connection                                 |
-| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)            |
+| uid                   | string    | Unique ID for this connection                                 |
+| id                    | conn_id   | Default Zeek connection info (IP addresses, ports)            |
 | is_orig               | bool      | True if the packet is sent from the originator                |
 | source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
-| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| source_p              | port      | Source port (see *Source and Destination Fields*)             |
 | destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
-| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
-| rosctr_code           | count     | Remote Operating Service Control Code (in hex)                |
-| rosctr_name           | string    | Remote Operating Service Control Name                         |
-| pdu_reference         | count     | Reference ID Used to Link Requests to Responses               |
-| function_code         | string    | Parameter Function Code (in hex)                              |
-| function_name         | string    | Parameter Function Name                                       |
-| subfunction_code      | string    | User-Data Subfunction Code (in hex)                           |
-| subfunction_name      | string    | User-Data Subfunction Name                                    |
-| error_class           | string    | Error Class Name                                              |
-| error_code            | string    | Error Code within Error Class                                 |
+| destination_p         | port      | Destination port (see *Source and Destination Fields*)        |
+| rosctr_code           | count     | Remote operating service control code (in hex)                |
+| rosctr_name           | string    | Remote operating service control name                         |
+| pdu_reference         | count     | Reference ID used to link requests to responses               |
+| function_code         | string    | Parameter function code (in hex)                              |
+| function_name         | string    | Parameter function name                                       |
+| subfunction_code      | string    | User-Data subfunction code (in hex)                           |
+| subfunction_name      | string    | User-Data subfunction name                                    |
+| error_class           | string    | Error class name                                              |
+| error_code            | string    | Error code within error class                                 |
 
 ### S7COMM Read-SZL Log (s7comm_read_szl.log)
 
@@ -141,26 +141,26 @@ This log captures information for the common S7Comm Read-SZL function. This data
 | Field                 | Type      | Description                                                   |
 | --------------------- |-----------|---------------------------------------------------------------|
 | ts                    | time      | Timestamp                                                     |
-| uid                   | string    | Unique ID for this Connection                                 |
-| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)            |
+| uid                   | string    | Unique ID for this connection                                 |
+| id                    | conn_id   | Default Zeek connection info (IP addresses, ports)            |
 | is_orig               | bool      | True if the packet is sent from the originator                |
 | source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
-| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| source_p              | port      | Source port (see *Source and Destination Fields*)             |
 | destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
-| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
-| pdu_reference         | count     | Reference ID Used to Link Requests to Responses               |
-| method                | string    | Request or Response                                           |
+| destination_p         | port      | Destination port (see *Source and Destination Fields*)        |
+| pdu_reference         | count     | Reference ID used to link requests to responses               |
+| method                | string    | Request or response                                           |
 | szl_id                | string    | SZL ID (in hex)                                               |
 | szl_id_name           | string    | Meaning of SZL ID                                             |
-| szl_index             | string    | SZL Index (in hex)                                            |
-| return_code           | string    | Return Code (in hex)                                          |
-| return_code_name      | string    | Meaning of Return Code                                        |
+| szl_index             | string    | SZL index (in hex)                                            |
+| return_code           | string    | Return code (in hex)                                          |
+| return_code_name      | string    | Meaning of return code                                        |
 
 ### S7COMM Upload-Download Log (s7comm_upload_download.log)
 
 #### Overview
 
-This log captures information for the S7Comm Upload and Download functions (see list below). This data is logged to **s7comm_upload_download.log**.:
+This log captures information for the S7Comm Upload and Download functions (see list below). This data is logged to **s7comm_upload_download.log**:
 * Start Upload
 * Upload
 * End Upload
@@ -173,23 +173,23 @@ This log captures information for the S7Comm Upload and Download functions (see 
 | Field                  | Type      | Description                                                  |
 | ---------------------- |-----------|--------------------------------------------------------------|
 | ts                     | time      | Timestamp                                                    |
-| uid                    | string    | Unique ID for this Connection                                |
-| id                     | conn_id   | Default Zeek Connection Info (IP addresses, ports)           |
-| is_orig               | bool      | True if the packet is sent from the originator                |
-| source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
-| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
-| destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
-| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
-| rosctr                 | count     | Remote Operating Service Control                             |
-| pdu_reference          | count     | Reference ID Used to Link Requests to Responses              |
-| function_code          | count     | Parameter Function Code                                      |
-| function_status        | count     | Function Status                                              |
+| uid                    | string    | Unique ID for this connection                                |
+| id                     | conn_id   | Default Zeek connection info (IP addresses, ports)           |
+| is_orig                | bool      | True if the packet is sent from the originator               |
+| source_h               | address   | Source IP address (see *Source and Destination Fields*)      |
+| source_p               | port      | Source port (see *Source and Destination Fields*)            |
+| destination_h          | address   | Destination IP address (see *Source and Destination Fields*) |
+| destination_p          | port      | Destination port (see *Source and Destination Fields*)       |
+| rosctr                 | count     | Remote operating service control                             |
+| pdu_reference          | count     | Reference ID used to link requests to responses              |
+| function_code          | count     | Parameter function code                                      |
+| function_status        | count     | Function status                                              |
 | session_id             | count     | Session ID                                                   |
-| blocklength            | count     | Length of Block to Upload/Download                           |
-| filename               | string    | Filename of Block to Upload/Download                         |
-| block_type             | string    | Block Type to Upload/Download                                |
-| block_number           | string    | Block Number to Upload/Download                              |
-| destination_filesystem | string    | Destination Filesystem of Upload/Download                    |
+| blocklength            | count     | Length of block to upload/download                           |
+| filename               | string    | Filename of block to upload/download                         |
+| block_type             | string    | Block type to upload/download                                |
+| block_number           | string    | Block number to upload/download                              |
+| destination_filesystem | string    | Destination filesystem of upload/download                    |
 
 ### S7COMM-PLUS Log (s7comm_plus.log)
 
@@ -202,18 +202,18 @@ This log captures s7comm-plus header information for every s7comm-plus packet an
 | Field                 | Type      | Description                                                   |
 | --------------------- |-----------|---------------------------------------------------------------|
 | ts                    | time      | Timestamp                                                     |
-| uid                   | string    | Unique ID for this Connection                                 |
-| id                    | conn_id   | Default Zeek Connection Info (IP addresses, ports)            |
+| uid                   | string    | Unique ID for this connection                                 |
+| id                    | conn_id   | Default Zeek connection info (IP addresses, ports)            |
 | is_orig               | bool      | True if the packet is sent from the originator                |
 | source_h              | address   | Source IP address (see *Source and Destination Fields*)       |
-| source_p              | port      | Source Port (see *Source and Destination Fields*)             |
+| source_p              | port      | Source port (see *Source and Destination Fields*)             |
 | destination_h         | address   | Destination IP address (see *Source and Destination Fields*)  |
-| destination_p         | port      | Destination Port (see *Source and Destination Fields*)        |
-| version               | count     | S7comm-plus Version                                           |
-| opcode                | string    | Opcode Code (in hex)                                          |
-| opcode_name           | string    | Opcode Name                                                   |
-| function_code         | string    | Opcode Function Code (in hex)                                 |
-| function_name         | string    | Opcode Function Name                                          |
+| destination_p         | port      | Destination port (see *Source and Destination Fields*)        |
+| version               | count     | S7comm-plus version                                           |
+| opcode                | string    | Opcode code (in hex)                                          |
+| opcode_name           | string    | Opcode name                                                   |
+| function_code         | string    | Opcode function code (in hex)                                 |
+| function_name         | string    | Opcode function name                                          |
 
 ### Source and Destination Fields
 
@@ -294,7 +294,7 @@ Updates to Zeek ICS Protocol Parsers:
     * Modbus Zeek script extending logging capabilities of Zeek's default Modbus protocol parser
 
 ### Other Software
-Idaho National Laboratory is a cutting edge research facility which is a constantly producing high quality research and software. Feel free to take a look at our other software and scientific offerings at:
+Idaho National Laboratory is a national research facility with a focus on development of software and toolchains to improve the security of criticial infrastructure environments around the world. Please review our other software and scientific offerings at:
 
 [Primary Technology Offerings Page](https://www.inl.gov/inl-initiatives/technology-deployment)
 
@@ -308,9 +308,9 @@ Idaho National Laboratory is a cutting edge research facility which is a constan
 
 Copyright 2023 Battelle Energy Alliance, LLC
 
-Licensed under the 3-Part BSD (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the 3-Clause BSD License (the "License");
+this file cannot be used except in compliance with the License.
+A copy of the License can be obtained at:
 
   https://opensource.org/licenses/BSD-3-Clause
 
@@ -320,9 +320,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-
-
-
 Licensing
 -----
-This software is licensed under the terms you may find in the file named "LICENSE" in this directory.
+This software is licensed under the terms found in the file named "LICENSE" in this directory.
