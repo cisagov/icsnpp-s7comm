@@ -160,7 +160,7 @@ event zeek_init() &priority=5 {
                                             $ev=log_s7comm_plus,
                                             $path="s7comm_plus"]);
 
-    Analyzer::register_for_ports(Analyzer::ANALYZER_S7COMM_TCP, ports);
+    # Analyzer::register_for_ports(Analyzer::ANALYZER_S7COMM_TCP, ports);
 }
 
 ###################################################################################################
