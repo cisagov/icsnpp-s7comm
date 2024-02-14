@@ -33,6 +33,7 @@ export{
         pdu_name                : string    &log;   # COTP PDU Type Name
     };
     global log_cotp: event(rec: COTP);
+    global log_policy_cotp: Log::PolicyHook;
 
     ###############################################################################################
     ###################################  S7COMM -> s7comm.log  ####################################
@@ -57,6 +58,7 @@ export{
         error_code              : string    &log;   # Error Code within Error Class
     };
     global log_s7comm: event(rec: S7COMM);
+    global log_policy_s7comm: Log::PolicyHook;
 
     ###############################################################################################
     ##########################  S7COMM_READ_SZL -> s7comm_read_szl.log  ###########################
@@ -79,6 +81,7 @@ export{
         return_code_name        : string    &log;   # Meaning of Return Code
     };
     global log_s7comm_read_szl: event(rec: S7COMM_READ_SZL);
+    global log_policy_s7comm_read_szl: Log::PolicyHook;
 
     ###############################################################################################
     ###################  S7COMM_UPLOAD_DOWNLOAD -> s7comm_upload_download.log  ####################
@@ -104,6 +107,7 @@ export{
         destination_filesystem  : string    &log;   # Destination Filesystem to Upload/Download
     };
     global log_s7comm_upload_download: event(rec: S7COMM_UPLOAD_DOWNLOAD);
+    global log_policy_s7comm_upload_download: Log::PolicyHook;
 
     ###############################################################################################
     ###############################  S7COMM_PLUS -> s7comm_plus.log  ##############################
@@ -124,6 +128,7 @@ export{
         function_name           : string    &log;   # Opcode Function Name
     };
     global log_s7comm_plus: event(rec: S7COMM_PLUS);
+    global log_policy_s7comm_plus: Log::PolicyHook;
 
     redef record connection += {
         filename    : string &optional;
@@ -142,23 +147,28 @@ redef likely_server_ports += { ports };
 event zeek_init() &priority=5 {
     Log::create_stream(S7COMM::LOG_COTP, [$columns=COTP,
                                           $ev=log_cotp,
-                                          $path="cotp"]);
+                                          $path="cotp",
+                                          $policy=log_policy_cotp]);
 
     Log::create_stream(S7COMM::LOG_S7COMM, [$columns=S7COMM,
                                             $ev=log_s7comm,
-                                            $path="s7comm"]);
+                                            $path="s7comm",
+                                            $policy=log_policy_s7comm]);
 
     Log::create_stream(S7COMM::LOG_S7COMM_READ_SZL, [$columns=S7COMM_READ_SZL,
                                             $ev=log_s7comm_read_szl,
-                                            $path="s7comm_read_szl"]);
+                                            $path="s7comm_read_szl",
+                                            $policy=log_policy_s7comm_read_szl]);
 
     Log::create_stream(S7COMM::LOG_S7COMM_UPLOAD_DOWNLOAD, [$columns=S7COMM_UPLOAD_DOWNLOAD,
                                             $ev=log_s7comm_upload_download,
-                                            $path="s7comm_upload_download"]);
+                                            $path="s7comm_upload_download",
+                                            $policy=log_policy_s7comm_upload_download]);
 
     Log::create_stream(S7COMM::LOG_S7COMM_PLUS, [$columns=S7COMM_PLUS,
                                             $ev=log_s7comm_plus,
-                                            $path="s7comm_plus"]);
+                                            $path="s7comm_plus",
+                                            $policy=log_policy_s7comm_plus]);
 
     # Analyzer::register_for_ports(Analyzer::ANALYZER_S7COMM_TCP, ports);
 }
