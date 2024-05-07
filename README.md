@@ -263,6 +263,22 @@ The table below shows an example of these fields in the log files. The first log
 
 S7COMM contains two functions for sending and receiving files: Upload and Download-Block. This plugin will extract files sent via these two functions and pass the extracted files to Zeek's file analysis framework.
 
+## Coverage
+
+See [Logging Capabilities](#logging-capabilities) for detailed information of the parser coverage.
+
+S7Comm is a proprietary protocol which makes coverage information and statistics difficult to compose. All coverage details in this section include information and statistics based on the S7Comm and S7Comm plus traffic observed in test networks and publicly available packet captures.
+
+### General/Header Logging
+
+The general log files for COTP (cotp.log), S7Comm (s7comm.log), and S7Comm Plus (s7comm_plus.log) contain basic header information for all known (~100%) COTP, S7Comm and S7Comm Plus messages.
+
+### Detailed Logging
+
+Detailed logging for 1 S7comm function is logged in the read szl log file (s7comm_read_szl.log), 6 S7Comm functions are logged in the upload download log file (s7comm_upload_download.log), and 5 S7comm functions are logged as part of the general S7comm log file (s7comm.log). ~30% of known S7comm functions contain detailed logging.
+
+There is currently no (0%) detailed logging for S7Comm Plus functions outside of the S7Comm Plus general/header log file (s7comm_plus.log).
+
 ## ICSNPP Packages
 
 All ICSNPP Packages:
