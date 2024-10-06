@@ -51,7 +51,7 @@ event s7comm_header%(c: connection,
 
 ## ---------------------------------------s7comm_read-szl------------------------------------------
 ## Event Description:
-##      Event is generated for all s7comm User-Data CPU Functions with Read SZL subfunction and 
+##      Event is generated for all s7comm User-Data CPU Functions with Read SZL subfunction and
 ##      contains relevant Read SZL data
 ## Event Data:
 ##      - pdu_reference:        count       -> Reference ID Used to Link Requests to Responses
@@ -118,6 +118,12 @@ event s7comm_plus_header%(c: connection,
                           opcode: count,
                           function_code: count%);
 
+## FIXME Description
+event s7comm_device_identification%(c:connection,
+                                    opcode: count,
+                                    value: string%);
+
+
 ###################################################################################################
 ###################################  END OF LOGGED BY DEFAULT  ####################################
 ###################################################################################################
@@ -127,16 +133,16 @@ event s7comm_plus_header%(c: connection,
 #####################################  NOT LOGGED BY DEFAULT  #####################################
 ###################################################################################################
 
-event tpkt%(c: connection, 
+event tpkt%(c: connection,
             is_orig: bool,
-            version: count, 
-            reserved: count, 
+            version: count,
+            reserved: count,
             length: count%);
 
 event cotp_data%(c: connection,
                  is_orig: bool,
                  tpdu_sequence_num: count,
-                 eot: count, 
+                 eot: count,
                  variable_data: string%);
 
 event cotp_connection_request%(c: connection,

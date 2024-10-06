@@ -11,10 +11,11 @@
 module S7COMM;
 
 export{
-    redef enum Log::ID += { LOG_COTP, 
-                            LOG_S7COMM, 
-                            LOG_S7COMM_READ_SZL, 
-                            LOG_S7COMM_UPLOAD_DOWNLOAD, 
+    redef enum Log::ID += { LOG_COTP,
+                            LOG_S7COMM,
+                            LOG_S7COMM_READ_SZL,
+                            LOG_S7COMM_UPLOAD_DOWNLOAD,
+                            LOG_S7COMM_KNOWN_DEVICES,
                             LOG_S7COMM_PLUS };
 
     ###############################################################################################
@@ -130,10 +131,34 @@ export{
     global log_s7comm_plus: event(rec: S7COMM_PLUS);
     global log_policy_s7comm_plus: Log::PolicyHook;
 
+    ###############################################################################################
+    ###################  S7COMM_KNOWN_DEVICES -> s7comm_known_devices.log  ########################
+    ###############################################################################################
+    type S7COMM_KNOWN_DEVICES: record {
+        ts                      : time      &log;   # Timestamp of Event
+        uid                     : string    &log;   # Zeek Unique ID for Connection
+        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   # Source IP Address
+        source_p                : port      &log;   # Source Port
+        destination_h           : addr      &log;   # Destination IP Address
+        destination_p           : port      &log;   # Destination Port
+        automation_system_name  : string    &log;
+        module_name              : string    &log;
+        plant_name              : string    &log;
+        module_serial            : string    &log;
+    };
+    global log_s7comm_known_devices: event(rec: S7COMM_KNOWN_DEVICES);
+    global log_policy_s7comm_known_devices: Log::PolicyHook;
+
     redef record connection += {
-        filename    : string &optional;
+        filename                : string &optional;
     };
 }
+
+redef record connection += {
+    s7comm_device_info      : S7COMM_KNOWN_DEVICES &optional;
+};
 
 # All these protocols operate on TCP port 102
 const ports = {
@@ -164,6 +189,11 @@ event zeek_init() &priority=5 {
                                             $ev=log_s7comm_upload_download,
                                             $path="s7comm_upload_download",
                                             $policy=log_policy_s7comm_upload_download]);
+
+    Log::create_stream(S7COMM::LOG_S7COMM_KNOWN_DEVICES, [$columns=S7COMM_KNOWN_DEVICES,
+                                            $ev=log_s7comm_known_devices,
+                                            $path="s7comm_known_devices",
+                                            $policy=log_policy_s7comm_known_devices]);
 
     Log::create_stream(S7COMM::LOG_S7COMM_PLUS, [$columns=S7COMM_PLUS,
                                             $ev=log_s7comm_plus,
@@ -249,7 +279,7 @@ event s7comm_header(c: connection,
     if ( function_code != UINT8_MAX )
     {
         # Formatting for function is different for User-Data functions
-        if ( rosctr == 0x07 ) 
+        if ( rosctr == 0x07 )
         {
             s7comm_item$function_code = fmt("0x%02x", function_code);
             if ( (function_code & 0xf0) == 0x40)
@@ -267,7 +297,7 @@ event s7comm_header(c: connection,
             s7comm_item$function_name = s7comm_functions[function_code];
         }
     }
- 
+
     if ( subfunction != UINT8_MAX )
     {
         s7comm_item$subfunction_code = fmt("0x%02x", subfunction);
@@ -415,7 +445,7 @@ event s7comm_upload_download(c: connection,
     s7comm_upload_download_item$rosctr = rosctr_types[rosctr];
     s7comm_upload_download_item$pdu_reference = pdu_reference;
     s7comm_upload_download_item$function_name = s7comm_functions[function_code];
-    
+
     if ( function_status != UINT8_MAX )
         s7comm_upload_download_item$function_status = fmt("0x%02x", function_status);
 
@@ -452,7 +482,7 @@ event s7comm_plus_header(c: connection,
     s7comm_plus_item$ts  = network_time();
     s7comm_plus_item$uid = c$uid;
     s7comm_plus_item$id  = c$id;
-    
+
     s7comm_plus_item$is_orig  = is_orig;
 
     if(is_orig)
@@ -480,4 +510,41 @@ event s7comm_plus_header(c: connection,
     }
 
     Log::write(LOG_S7COMM_PLUS, s7comm_plus_item);
+}
+
+event s7comm_device_identification(c:connection, opcode: count, name: string)
+{
+    if (! c?$s7comm_device_info)
+    {
+        local s: S7COMM_KNOWN_DEVICES;
+        c$s7comm_device_info = s;
+    }
+
+    # FIXME
+    name = strip(name);
+
+    if (opcode == 0x0001 )
+    {
+        c$s7comm_device_info$automation_system_name = name;
+    }
+    if (opcode == 0x0002)
+    {
+        c$s7comm_device_info$module_name = name;
+    }
+    if (opcode == 0x0003)
+    {
+        c$s7comm_device_info$plant_name = name;
+    }
+    if (opcode == 0x0005)
+    {
+        c$s7comm_device_info$module_serial = name;
+    }
+}
+
+event connection_state_remove(c:connection)
+{
+    if (c?$s7comm_device_info)
+    {
+        Log::write(S7COMM::LOG_S7COMM_KNOWN_DEVICES, c$s7comm_device_info);
+    }
 }
