@@ -520,8 +520,7 @@ event s7comm_device_identification(c:connection, opcode: count, name: string)
         c$s7comm_device_info = s;
     }
 
-    # FIXME
-    name = strip(name);
+    name = rstrip(name,"\x00");
 
     if (opcode == 0x0001 )
     {
