@@ -459,6 +459,7 @@ type CPU_Functions(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id
     };
 }
 
+## For more information: https://support.industry.siemens.com/cs/mdm/109755202?c=38382668299&lc=en-AE
 type W_16_0001_0002_0005() = record {
     name: bytestring &length=24;
     reserved: bytestring &length=8;
@@ -467,7 +468,6 @@ type W_16_0001_0002_0005() = record {
 type W_16_0003() = record {
     name: bytestring &length=32;
 };
-
 
 type SZL_DataRecord_xy1c() = record {
     index: uint16;

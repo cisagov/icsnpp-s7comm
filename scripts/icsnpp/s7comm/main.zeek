@@ -512,6 +512,10 @@ event s7comm_plus_header(c: connection,
     Log::write(LOG_S7COMM_PLUS, s7comm_plus_item);
 }
 
+#####################################################################################################################
+#################  Defines logging of s7comm_device_identifcation event -> s7comm_known_devices.log  ################
+#####################################################################################################################
+
 event s7comm_device_identification(c:connection, opcode: count, name: string)
 {
     if (! c?$s7comm_device_info)
@@ -544,6 +548,10 @@ event connection_state_remove(c:connection)
 {
     if (c?$s7comm_device_info)
     {
+        c$s7comm_device_info$ts = network_time();
+        c$s7comm_device_info$uid = c$uid;
+        c$s7comm_device_info$id = c$id;
+
         Log::write(S7COMM::LOG_S7COMM_KNOWN_DEVICES, c$s7comm_device_info);
     }
 }
