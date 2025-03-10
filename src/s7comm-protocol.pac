@@ -67,12 +67,12 @@ type TPKT(is_orig: bool) = record {
 ##      COTP header data.
 ## Message Format:
 ##      - length:               uint8               -> Length of COTP header
-##      - pdu_type:             uint8               -> COTP PDU Type (see cotp_pdu_types in 
+##      - pdu_type:             uint8               -> COTP PDU Type (see cotp_pdu_types in
 ##                                                     consts.pac)
 ##      - cdt:                  uint8               -> CDT (Credit Field)
 ##      - cotp_data:            variable            -> COTP Data depending on pdu_type
 ## Protocol Parsing:
-##      Sends header information to the cotp event. By default this is then logged to the 
+##      Sends header information to the cotp event. By default this is then logged to the
 ##      cotp.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
 type COTP(is_orig: bool) = record {
@@ -131,19 +131,19 @@ type S7comm_Packet(is_orig: bool) = record {
 ##      S7comm header data.
 ## Message Format:
 ##      - rosctr:               uint8               -> Length of COTP header
-##      - rosctr_function:      variable            -> Rest of S7Comm header is dependant on 
+##      - rosctr_function:      variable            -> Rest of S7Comm header is dependant on
 ##                                                     ROSCTR so pass functionality depending
 ##                                                     on ROSCTR
-##      - redundancy_id:        uint16              -> Remote Operating Service Control 
+##      - redundancy_id:        uint16              -> Remote Operating Service Control
 ##                                                     (see rosctr_types in consts.zeek)
-##      - pdu_reference:        uint16              -> Reference ID Used to Link Requests to 
+##      - pdu_reference:        uint16              -> Reference ID Used to Link Requests to
 ##                                                     Responses
 ##      - parameter_length:     uint16              -> Length of Parameter following header
-##      - data_length:          uint16              -> Length of Data following Parameter 
-##      - error_class:          uint8               -> Error Class (see s7comm_error_class in 
+##      - data_length:          uint16              -> Length of Data following Parameter
+##      - error_class:          uint8               -> Error Class (see s7comm_error_class in
 ##                                                     consts.zeek)
 ##      - error_code:           uint8               -> Error Code within Error Class
-##      - parameter_code:       uint8               -> Parameter Function Code (see 
+##      - parameter_code:       uint8               -> Parameter Function Code (see
 ##                                                     s7comm_functions in consts.zeek)
 ## Protocol Parsing:
 ##      Starts protocol parsing for S7comm header by getting ROSCTR then passes processing to
@@ -170,12 +170,12 @@ type S7comm(is_orig: bool) = record {
 ##      - length:               uint16              -> Length of s7comm-plus data
 ##      - digest_length:        uint8               -> Length of digest portion
 ##      - digest:               uint8[]             -> Digest portion of s7comm-plus packet
-##      - opcode:               uint8               -> Opcode (see s7comm_plus_opcodes in 
+##      - opcode:               uint8               -> Opcode (see s7comm_plus_opcodes in
 ##                                                     consts.zeek)
-##      - opcode_data:          uint32              -> Additional data found in Opcode 
+##      - opcode_data:          uint32              -> Additional data found in Opcode
 ##                                                     (usually function code)
 ## Protocol Parsing:
-##      Sends header information to the s7comm_plus_header event. By default this is then logged 
+##      Sends header information to the s7comm_plus_header event. By default this is then logged
 ##      to the s7comm_plus.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
 type S7comm_Plus(is_orig: bool) = record {
@@ -203,16 +203,16 @@ type S7comm_Plus(is_orig: bool) = record {
 ##      S7comm header data for ROSCTR Job.
 ## Message Format:
 ##      - redundancy_id:        uint16              -> Reserved
-##      - pdu_reference:        uint16              -> Reference ID Used to Link Requests to 
+##      - pdu_reference:        uint16              -> Reference ID Used to Link Requests to
 ##                                                     Responses
 ##      - parameter_length:     uint16              -> Length of Parameter following header
-##      - data_length:          uint16              -> Length of Data following Parameter 
+##      - data_length:          uint16              -> Length of Data following Parameter
 ##      - function_code:        uint8               -> Parameter Function Code
 ##      - function_analysis:    variable            -> If PLC Control, passes processing on to
 ##                                                     ROSCTR_Job_PLC_Control
 ## Protocol Parsing:
 ##      Sends header information to the s7comm_header event. By default this is then logged to the
-##      s7comm.log file as defined in main.zeek. If function code is PLC Control, passess 
+##      s7comm.log file as defined in main.zeek. If function code is PLC Control, passess
 ##      processing to ROSCTR_Job_PLC_Control.
 ## ------------------------------------------------------------------------------------------------
 type ROSCTR_Job(is_orig: bool) = record {
@@ -360,11 +360,11 @@ type ROSCTR_ACK_Data(is_orig: bool) = record {
 ##      - function_code:        uint8               -> Parameter Function Code
 ##      - subfunction:          uint8               -> Subfunction Code under Function Code
 ##      - sequence_num:         uint8               -> Sequence Number
-##      - request_response      variable            -> Passess processing to either 
-##                                                     ROSCTR_User_Data_Response or 
+##      - request_response      variable            -> Passess processing to either
+##                                                     ROSCTR_User_Data_Response or
 ##                                                     ROSCTR_User_Data_Request based on method
 ## Protocol Parsing:
-##      Gets majority of s7comm header information for ROSCTR User-Data functions, then passes 
+##      Gets majority of s7comm header information for ROSCTR User-Data functions, then passes
 ##      processing to either ROSCTR_User_Data_Response or ROSCTR_User_Data_Request based on method.
 ## ------------------------------------------------------------------------------------------------
 type ROSCTR_User_Data(is_orig: bool) = record {
@@ -394,7 +394,7 @@ type ROSCTR_User_Data(is_orig: bool) = record {
 ##      - data_reference_id:    uint8               -> Data Reference ID to Link multipart packets
 ##      - last_data_unit:       uint16              -> True or False if last data unit in mutipart
 ##      - error_code:           uint16              -> Error Code
-##      - parameter_data:       variable            -> Passes processing to CPU_Functions if 
+##      - parameter_data:       variable            -> Passes processing to CPU_Functions if
 ##                                                     function code is CPU-Functions
 ## Protocol Parsing:
 ##      Sends header information to the s7comm_header event. By default this is then logged to the
@@ -418,7 +418,7 @@ type ROSCTR_User_Data_Response(user_data: ROSCTR_User_Data, is_orig: bool) = rec
 ## Message Description:
 ##      S7comm header data for ROSCTR User-Data-Request.
 ## Message Format:
-##      - parameter_data:       variable            -> Passes processing to CPU_Functions if 
+##      - parameter_data:       variable            -> Passes processing to CPU_Functions if
 ##                                                     function code is CPU-Functions
 ## Protocol Parsing:
 ##      Sends header information to the s7comm_header event. By default this is then logged to the
@@ -459,11 +459,34 @@ type CPU_Functions(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id
     };
 }
 
+## For more information: https://support.industry.siemens.com/cs/mdm/109755202?c=38382668299&lc=en-AE
+type W_16_0001_0002_0005() = record {
+    name: bytestring &length=24;
+    reserved: bytestring &length=8;
+};
+
+type W_16_0003() = record {
+    name: bytestring &length=32;
+};
+
+type SZL_DataRecord_xy1c() = record {
+    index: uint16;
+    message: case index of {
+        0x001 -> name_of_automation_system: W_16_0001_0002_0005;
+        0x002 -> name_of_module: W_16_0001_0002_0005;
+        0x003 -> plant_identification: W_16_0003;
+        0x005 -> serial_of_module: W_16_0001_0002_0005;
+        default -> ignore: bytestring &length=32;
+    };
+} &let {
+    deliver: bool = $context.flow.process_szl_data_record_xy1c(this);
+} &byteorder=bigendian;
+
 ## --------------------------------------------READ_SZL--------------------------------------------
 ## Message Description:
 ##      S7comm Read SZL data.
 ## Message Format:
-##      - return_code:          uint8               -> Return Code (see 
+##      - return_code:          uint8               -> Return Code (see
 ##                                                     s7comm_userdata_return_codes in consts.zeek)
 ##      - transport_size:       uint8               -> Transport Size/Type
 ##      - data_length:          uint16              -> Length of data (in bytes)
@@ -474,13 +497,26 @@ type CPU_Functions(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id
 ##      Sends read szl information to the s7comm_read_szl event. By default this is then logged to the
 ##      s7comm_read_szl.log file as defined in main.zeek.
 ## ------------------------------------------------------------------------------------------------
+type Read_SZL_Response(szl_id: uint16, data_length: uint16) = record {
+    szl_partial_list_length:    uint16;
+    szl_partial_list_count:     uint16;
+    data:                       case (szl_id) of {
+         0x001c                 -> identification_message: SZL_DataRecord_xy1c[szl_partial_list_count];
+         default                -> bytes: bytestring &length=data_length-4;
+    };
+};
+
 type Read_SZL(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
     return_code:                uint8;
     transport_size:             uint8;
     data_length:                uint16;
     szl_id:                     uint16;
     szl_index:                  uint16;
-    data:                       bytestring &length=data_length-4;
+
+    resp: case (is_orig) of {
+        true -> ignore: bytestring &length=data_length-4;
+        false -> response: Read_SZL_Response(szl_id, data_length-4);
+    };
 } &let {
     is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_s7comm_read_szl(this);
@@ -787,7 +823,7 @@ type COTP_Data(is_orig: bool, length: uint8) = record {
 ## Message Description:
 ##      COTP Connection Request.
 ## Protocol Parsing:
-##      Sends header information to the cotp_connection_request event. By default this is not 
+##      Sends header information to the cotp_connection_request event. By default this is not
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
 type COTP_Connection_Request(is_orig: bool, length: uint8) = record {
@@ -807,7 +843,7 @@ type COTP_Connection_Request(is_orig: bool, length: uint8) = record {
 ## Message Description:
 ##      COTP Connection Confirm.
 ## Protocol Parsing:
-##      Sends header information to the cotp_connection_confirm event. By default this is not 
+##      Sends header information to the cotp_connection_confirm event. By default this is not
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
 type COTP_Connection_Confirm(is_orig: bool, length: uint8) = record {
@@ -835,7 +871,7 @@ type COTP_Connection_Confirm(is_orig: bool, length: uint8) = record {
 ## Message Description:
 ##      COTP Disconnect Request.
 ## Protocol Parsing:
-##      Sends header information to the cotp_disconnect_request event. By default this is not 
+##      Sends header information to the cotp_disconnect_request event. By default this is not
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
 type COTP_Disconnect_Request(is_orig: bool, length: uint8) = record {
@@ -852,7 +888,7 @@ type COTP_Disconnect_Request(is_orig: bool, length: uint8) = record {
 ## Message Description:
 ##      COTP Disconnect Confirm.
 ## Protocol Parsing:
-##      Sends header information to the cotp_disconnect_confirm event. By default this is not 
+##      Sends header information to the cotp_disconnect_confirm event. By default this is not
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
 type COTP_Disconnect_Confirm(is_orig: bool, length: uint8) = record {
@@ -885,7 +921,7 @@ type COTP_Expedited_Data(is_orig: bool, length: uint8) = record {
 ## Message Description:
 ##      COTP Data Acknowledgement.
 ## Protocol Parsing:
-##      Sends header information to the cotp_data_acknowledgement event. By default this is not 
+##      Sends header information to the cotp_data_acknowledgement event. By default this is not
 ##      logged.
 ## ------------------------------------------------------------------------------------------------
 type COTP_Data_Acknowledgement(is_orig: bool, length: uint8) = record {

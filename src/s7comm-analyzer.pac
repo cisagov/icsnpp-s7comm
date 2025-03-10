@@ -126,6 +126,34 @@ refine flow S7COMM_Flow += {
             return true;
         %}
 
+    function process_szl_data_record_xy1c(data: SZL_DataRecord_xy1c): bool
+    %{
+        uint16 index = ${data.index};
+        string name;
+
+        switch (index) {
+            case 0x0001:
+                name =  std_str(${data.name_of_automation_system.name});
+                break;
+            case 0x0002:
+                name =  std_str(${data.name_of_module.name});
+                break;
+            case 0x0003:
+                name =  std_str(${data.plant_identification.name});
+                break;
+            case 0x0005:
+                name =  std_str(${data.serial_of_module.name});
+                break;
+        }
+        if ( name.size() )
+            zeek::BifEvent::enqueue_s7comm_device_identification(connection()->zeek_analyzer(),
+                        connection()->zeek_analyzer()->Conn(),
+                        index,
+                        zeek::make_intrusive<zeek::StringVal>(name));
+
+        return true;
+    %}
+
     ###############################################################################################
     ##################### Process data for rosctr_ack -> s7comm_header event  #####################
     ###############################################################################################
