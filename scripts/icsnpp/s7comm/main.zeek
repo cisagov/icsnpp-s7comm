@@ -22,16 +22,16 @@ export{
     #####################################  COTP -> cotp.log  ######################################
     ###############################################################################################
     type COTP: record {
-        ts                      : time      &log;   # Timestamp of Event
-        uid                     : string    &log;   # Zeek Unique ID for Connection
-        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
-        source_h                : addr      &log;   # Source IP Address
-        source_p                : port      &log;   # Source Port
-        destination_h           : addr      &log;   # Destination IP Address
-        destination_p           : port      &log;   # Destination Port
-        pdu_code                : string    &log;   # COTP PDU Type Code (in hex)
-        pdu_name                : string    &log;   # COTP PDU Type Name
+        ts                      : time      &log;   ##< Timestamp of Event
+        uid                     : string    &log;   ##< Zeek Unique ID for Connection
+        id                      : conn_id   &log;   ##< Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   ##< the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   ##< Source IP Address
+        source_p                : port      &log;   ##< Source Port
+        destination_h           : addr      &log;   ##< Destination IP Address
+        destination_p           : port      &log;   ##< Destination Port
+        pdu_code                : string    &log;   ##< COTP PDU Type Code (in hex)
+        pdu_name                : string    &log;   ##< COTP PDU Type Name
     };
     global log_cotp: event(rec: COTP);
     global log_policy_cotp: Log::PolicyHook;
@@ -40,23 +40,23 @@ export{
     ###################################  S7COMM -> s7comm.log  ####################################
     ###############################################################################################
     type S7COMM: record {
-        ts                      : time      &log;   # Timestamp of Event
-        uid                     : string    &log;   # Zeek Unique ID for Connection
-        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
-        source_h                : addr      &log;   # Source IP Address
-        source_p                : port      &log;   # Source Port
-        destination_h           : addr      &log;   # Destination IP Address
-        destination_p           : port      &log;   # Destination Port
-        rosctr_code             : count     &log;   # Remote Operating Service Control Code (in hex)
-        rosctr_name             : string    &log;   # Remote Operating Service Control Name
-        pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
-        function_code           : string    &log;   # Parameter Function Code (in hex)
-        function_name           : string    &log;   # Parameter Function Name
-        subfunction_code        : string    &log;   # User-Data Subfunction Code (in hex)
-        subfunction_name        : string    &log;   # User-Data Subfunction Name
-        error_class             : string    &log;   # Error Class Name
-        error_code              : string    &log;   # Error Code within Error Class
+        ts                      : time      &log;   ##< Timestamp of Event
+        uid                     : string    &log;   ##< Zeek Unique ID for Connection
+        id                      : conn_id   &log;   ##< Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   ##< the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   ##< Source IP Address
+        source_p                : port      &log;   ##< Source Port
+        destination_h           : addr      &log;   ##< Destination IP Address
+        destination_p           : port      &log;   ##< Destination Port
+        rosctr_code             : count     &log;   ##< Remote Operating Service Control Code (in hex)
+        rosctr_name             : string    &log;   ##< Remote Operating Service Control Name
+        pdu_reference           : count     &log;   ##< Reference ID Used to Link Requests to Responses
+        function_code           : string    &log;   ##< Parameter Function Code (in hex)
+        function_name           : string    &log;   ##< Parameter Function Name
+        subfunction_code        : string    &log;   ##< User-Data Subfunction Code (in hex)
+        subfunction_name        : string    &log;   ##< User-Data Subfunction Name
+        error_class             : string    &log;   ##< Error Class Name
+        error_code              : string    &log;   ##< Error Code within Error Class
     };
     global log_s7comm: event(rec: S7COMM);
     global log_policy_s7comm: Log::PolicyHook;
@@ -65,21 +65,21 @@ export{
     ##########################  S7COMM_READ_SZL -> s7comm_read_szl.log  ###########################
     ###############################################################################################
     type S7COMM_READ_SZL: record {
-        ts                      : time      &log;   # Timestamp of Event
-        uid                     : string    &log;   # Zeek Unique ID for Connection
-        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
-        source_h                : addr      &log;   # Source IP Address
-        source_p                : port      &log;   # Source Port
-        destination_h           : addr      &log;   # Destination IP Address
-        destination_p           : port      &log;   # Destination Port
-        pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
-        method                  : string    &log;   # Request or Response
-        szl_id                  : string    &log;   # SZL ID (in hex)
-        szl_id_name             : string    &log;   # Meaning of SZL ID
-        szl_index               : string    &log;   # SZL Index (in hex)
-        return_code             : string    &log;   # Return Code (in hex)
-        return_code_name        : string    &log;   # Meaning of Return Code
+        ts                      : time      &log;   ##< Timestamp of Event
+        uid                     : string    &log;   ##< Zeek Unique ID for Connection
+        id                      : conn_id   &log;   ##< Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   ##< the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   ##< Source IP Address
+        source_p                : port      &log;   ##< Source Port
+        destination_h           : addr      &log;   ##< Destination IP Address
+        destination_p           : port      &log;   ##< Destination Port
+        pdu_reference           : count     &log;   ##< Reference ID Used to Link Requests to Responses
+        method                  : string    &log;   ##< Request or Response
+        szl_id                  : string    &log;   ##< SZL ID (in hex)
+        szl_id_name             : string    &log;   ##< Meaning of SZL ID
+        szl_index               : string    &log;   ##< SZL Index (in hex)
+        return_code             : string    &log;   ##< Return Code (in hex)
+        return_code_name        : string    &log;   ##< Meaning of Return Code
     };
     global log_s7comm_read_szl: event(rec: S7COMM_READ_SZL);
     global log_policy_s7comm_read_szl: Log::PolicyHook;
@@ -88,24 +88,24 @@ export{
     ###################  S7COMM_UPLOAD_DOWNLOAD -> s7comm_upload_download.log  ####################
     ###############################################################################################
     type S7COMM_UPLOAD_DOWNLOAD: record {
-        ts                      : time      &log;   # Timestamp of Event
-        uid                     : string    &log;   # Zeek Unique ID for Connection
-        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
-        source_h                : addr      &log;   # Source IP Address
-        source_p                : port      &log;   # Source Port
-        destination_h           : addr      &log;   # Destination IP Address
-        destination_p           : port      &log;   # Destination Port
-        rosctr                  : string    &log;   # Remote Operating Service Control Name
-        pdu_reference           : count     &log;   # Reference ID Used to Link Requests to Responses
-        function_name           : string    &log;   # Upload/Download Function Name
-        function_status         : string    &log;   # Function Return Status
-        session_id              : count     &log;   # Session ID
-        blocklength             : count     &log;   # Length of Block to Upload/Download
-        filename                : string    &log;   # Filename to Upload/Download
-        block_type              : string    &log;   # Block Type to Upload/Download
-        block_number            : string    &log;   # Block Number to Upload/Download
-        destination_filesystem  : string    &log;   # Destination Filesystem to Upload/Download
+        ts                      : time      &log;   ##< Timestamp of Event
+        uid                     : string    &log;   ##< Zeek Unique ID for Connection
+        id                      : conn_id   &log;   ##< Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   ##< the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   ##< Source IP Address
+        source_p                : port      &log;   ##< Source Port
+        destination_h           : addr      &log;   ##< Destination IP Address
+        destination_p           : port      &log;   ##< Destination Port
+        rosctr                  : string    &log;   ##< Remote Operating Service Control Name
+        pdu_reference           : count     &log;   ##< Reference ID Used to Link Requests to Responses
+        function_name           : string    &log;   ##< Upload/Download Function Name
+        function_status         : string    &log;   ##< Function Return Status
+        session_id              : count     &log;   ##< Session ID
+        blocklength             : count     &log;   ##< Length of Block to Upload/Download
+        filename                : string    &log;   ##< Filename to Upload/Download
+        block_type              : string    &log;   ##< Block Type to Upload/Download
+        block_number            : string    &log;   ##< Block Number to Upload/Download
+        destination_filesystem  : string    &log;   ##< Destination Filesystem to Upload/Download
     };
     global log_s7comm_upload_download: event(rec: S7COMM_UPLOAD_DOWNLOAD);
     global log_policy_s7comm_upload_download: Log::PolicyHook;
@@ -114,19 +114,19 @@ export{
     ###############################  S7COMM_PLUS -> s7comm_plus.log  ##############################
     ###############################################################################################
     type S7COMM_PLUS: record {
-        ts                      : time      &log;   # Timestamp of Event
-        uid                     : string    &log;   # Zeek Unique ID for Connection
-        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
-        source_h                : addr      &log;   # Source IP Address
-        source_p                : port      &log;   # Source Port
-        destination_h           : addr      &log;   # Destination IP Address
-        destination_p           : port      &log;   # Destination Port
-        version                 : count     &log;   # S7comm-plus Version
-        opcode                  : string    &log;   # Opcode Code (in hex)
-        opcode_name             : string    &log;   # Opcode Name
-        function_code           : string    &log;   # Opcode Function Code (in hex)
-        function_name           : string    &log;   # Opcode Function Name
+        ts                      : time      &log;   ##< Timestamp of Event
+        uid                     : string    &log;   ##< Zeek Unique ID for Connection
+        id                      : conn_id   &log;   ##< Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   ##< the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   ##< Source IP Address
+        source_p                : port      &log;   ##< Source Port
+        destination_h           : addr      &log;   ##< Destination IP Address
+        destination_p           : port      &log;   ##< Destination Port
+        version                 : count     &log;   ##< S7comm-plus Version
+        opcode                  : string    &log;   ##< Opcode Code (in hex)
+        opcode_name             : string    &log;   ##< Opcode Name
+        function_code           : string    &log;   ##< Opcode Function Code (in hex)
+        function_name           : string    &log;   ##< Opcode Function Name
     };
     global log_s7comm_plus: event(rec: S7COMM_PLUS);
     global log_policy_s7comm_plus: Log::PolicyHook;
@@ -135,14 +135,14 @@ export{
     ###################  S7COMM_KNOWN_DEVICES -> s7comm_known_devices.log  ########################
     ###############################################################################################
     type S7COMM_KNOWN_DEVICES: record {
-        ts                      : time      &log;   # Timestamp of Event
-        uid                     : string    &log;   # Zeek Unique ID for Connection
-        id                      : conn_id   &log;   # Zeek Connection Struct (addresses and ports)
-        is_orig                 : bool      &log;   # the message came from the originator/client or the responder/server
-        source_h                : addr      &log;   # Source IP Address
-        source_p                : port      &log;   # Source Port
-        destination_h           : addr      &log;   # Destination IP Address
-        destination_p           : port      &log;   # Destination Port
+        ts                      : time      &log;   ##< Timestamp of Event
+        uid                     : string    &log;   ##< Zeek Unique ID for Connection
+        id                      : conn_id   &log;   ##< Zeek Connection Struct (addresses and ports)
+        is_orig                 : bool      &log;   ##< the message came from the originator/client or the responder/server
+        source_h                : addr      &log;   ##< Source IP Address
+        source_p                : port      &log;   ##< Source Port
+        destination_h           : addr      &log;   ##< Destination IP Address
+        destination_p           : port      &log;   ##< Destination Port
         automation_system_name  : string    &log;
         module_name              : string    &log;
         plant_name              : string    &log;
