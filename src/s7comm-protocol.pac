@@ -33,7 +33,7 @@ type S7COMM_PDU(is_orig: bool) = record {
     };
 } &let {
     is_originator: bool = is_orig;
-} &byteorder=littleendian;
+} &byteorder=littleendian, &length=tpkt.length;
 
 ###################################################################################################
 ##################################  END OF ZEEK CONNECTION DATA  ##################################

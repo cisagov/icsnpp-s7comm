@@ -18,7 +18,7 @@ connection S7COMM_Conn(zeek_analyzer: ZeekAnalyzer) {
 %include s7comm-protocol.pac
 
 flow S7COMM_Flow(is_orig: bool) {
-    datagram = S7COMM_PDU(is_orig) withcontext(connection, this);
+    flowunit = S7COMM_PDU(is_orig) withcontext(connection, this);
 }
 
 %include s7comm-analyzer.pac
