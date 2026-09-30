@@ -270,13 +270,48 @@ The table below shows an example of these fields in the log files. The first log
 
 S7COMM contains two functions for sending and receiving files: Upload and Download-Block. This plugin will extract files sent via these two functions and pass the extracted files to Zeek's file analysis framework.
 
-## Port Override
+## Port Configuration
 
-If so desired, the default s7comm traffic port can be overridden by redefining the `ports` variable, e.g.:
+S7comm, S7comm-plus, COTP, and TPKT are analyzed over TCP by this plugin. UDP is not
+supported. The default server port is TCP/102. To retain TCP/102 and add a non-standard
+server port, load the package and extend `S7COMM::ports` in a Zeek policy file such as
+`local.zeek`:
+
+```zeek
+@load icsnpp/s7comm
+redef S7COMM::ports += { 12345/tcp };
+```
+
+To replace TCP/102 instead of retaining it, assign a new set:
+
+```zeek
+@load icsnpp/s7comm
+redef S7COMM::ports = { 12345/tcp };
+```
+
+For a one-time packet-capture analysis, the additive form can also be supplied on the
+command line:
 
 ```bash
-zeek -Cr testing/traces/s7comm_plus_port_change.pcap icsnpp/s7comm "S7COMM::ports={ 5678/tcp }" 
+zeek -Cr testing/traces/s7comm_plus_port_change.pcap icsnpp/s7comm \
+    "S7COMM::ports += { 5678/tcp }"
 ```
+
+Configured ports are registered directly with the S7comm TCP analyzer, so traffic on
+those ports is passed to the analyzer without first having to match a payload signature.
+The package also loads a dynamic protocol detection signature for TPKT/COTP traffic
+destined for the configured server ports. No separate signature change is needed when
+`S7COMM::ports` is redefined.
+
+`likely_server_ports` is only a connection-direction heuristic; adding a port to it does
+not enable protocol parsing. This package automatically adds the final contents of
+`S7COMM::ports` to that heuristic during initialization.
+
+Changing this script-level configuration does not require rebuilding the plugin. An
+already-running Zeek deployment must be restarted, redeployed, or otherwise reloaded for
+the new policy to take effect. Because every TCP connection on a configured port is sent
+to the analyzer, only add ports dedicated to S7comm traffic. Assigning an unrelated or
+high-volume service port may cause analyzer violations and unnecessary processing.
 
 ## Coverage
 
