@@ -160,16 +160,22 @@ redef record connection += {
     s7comm_device_info      : S7COMM_KNOWN_DEVICES &optional;
 };
 
-# All these protocols operate on TCP port 102
-const ports = {
-    102/tcp,
-};
-redef likely_server_ports += { ports };
+# All these protocols operate on TCP port 102 by default.
+export {
+    const ports: set[port] = { 102/tcp } &redef;
+}
 
 ###################################################################################################
 ####  Defines Log Streams for cotp.log, s7comm.log, s7comm_read_szl.log, and s7comm_plus.log  #####
 ###################################################################################################
 event zeek_init() &priority=5 {
+    # Port redefinitions have their final values at initialization time. Keep the connection
+    # direction heuristic synchronized with the ports registered for protocol analysis.
+    for ( p in ports )
+        add likely_server_ports[p];
+
+    Analyzer::register_for_ports(Analyzer::ANALYZER_S7COMM_TCP, ports);
+
     Log::create_stream(S7COMM::LOG_COTP, [$columns=COTP,
                                           $ev=log_cotp,
                                           $path="cotp",
@@ -200,7 +206,6 @@ event zeek_init() &priority=5 {
                                             $path="s7comm_plus",
                                             $policy=log_policy_s7comm_plus]);
 
-    # Analyzer::register_for_ports(Analyzer::ANALYZER_S7COMM_TCP, ports);
 }
 
 ###################################################################################################
