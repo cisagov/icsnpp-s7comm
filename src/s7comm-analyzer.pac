@@ -22,8 +22,7 @@
             filename = "";
             block_type = "";
             block_number = "";
-            destination_filesystem = data[8];
-
+            destination_filesystem = ( data.length() > 8 ) ? std::string(1, (char)data[8]) : std::string();
             for ( int32 i = 0; i < data.length(); ++i )
             {
                 filename += data[i];
@@ -52,8 +51,14 @@
     int get_number(const_bytestring data){
         char str[32];
 
-        for ( int32 i = 0; i < data.length(); ++i )
+        size_t n = ( data.length() > 0 ) ? (size_t)data.length() : 0;
+        if ( n > sizeof(str) - 1 ) {
+            n = sizeof(str) - 1;
+        }
+        for ( size_t i = 0; i < n; ++i ) {
             str[i] = (char)data[i];
+        }
+        str[n] = '\0';
 
         return atoi(str);
     }
