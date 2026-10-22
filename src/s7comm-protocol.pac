@@ -168,8 +168,8 @@ type S7comm(is_orig: bool) = record {
 ## Message Format:
 ##      - version:              uint8               -> S7comm-plus version
 ##      - length:               uint16              -> Length of s7comm-plus data
-##      - digest_length:        uint8               -> Length of digest portion
-##      - digest:               uint8[]             -> Digest portion of s7comm-plus packet
+##      - integrity:            variable            -> Digest (see S7comm_Plus_Digest), not
+##                                                     present in V1 and V2 packets
 ##      - opcode:               uint8               -> Opcode (see s7comm_plus_opcodes in
 ##                                                     consts.zeek)
 ##      - opcode_data:          uint32              -> Additional data found in Opcode
@@ -181,13 +181,27 @@ type S7comm(is_orig: bool) = record {
 type S7comm_Plus(is_orig: bool) = record {
     version:            uint8;
     length:             uint16;
-    digest_length:      uint8;
-    digest:             bytestring &length = digest_length;
+    integrity:          case version of {
+        S7COMM_PLUS_V1, S7COMM_PLUS_V2  -> no_digest:   empty;
+        default                         -> digest:      S7comm_Plus_Digest;
+    };
     opcode:             uint8;
     opcode_data:        uint32;
 } &let {
     is_originator: bool = is_orig;
     deliver: bool = $context.flow.process_s7comm_plus_header(this);
+} &byteorder=bigendian;
+
+## ---------------------------------------S7comm-Plus-Digest---------------------------------------
+## Message Description:
+##      S7comm-plus integrity digest (V3 and later).
+## Message Format:
+##      - digest_length:        uint8               -> Length of digest portion
+##      - digest:               uint8[]             -> Digest portion of s7comm-plus packet
+## ------------------------------------------------------------------------------------------------
+type S7comm_Plus_Digest = record {
+    digest_length:      uint8;
+    digest:             bytestring &length = digest_length;
 } &byteorder=bigendian;
 
 ###################################################################################################
