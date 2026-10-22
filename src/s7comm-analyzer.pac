@@ -60,9 +60,6 @@
         }
         str[n] = '\0';
 
-        // for ( int32 i = 0; i < data.length(); ++i )
-        //     str[i] = (char)data[i];
-
         return atoi(str);
     }
 %}
