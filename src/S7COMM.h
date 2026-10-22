@@ -32,6 +32,10 @@ namespace zeek::analyzer::s7comm {
 
       protected:
           binpac::S7COMM::S7COMM_Conn* interp;
-          bool had_gap;
+          // Per-direction: true while we are waiting for the next TPKT (RFC 1006)
+          // frame boundary after a content gap. Replaces the latched,
+          // connection-wide `had_gap`.
+          bool resync_orig;
+          bool resync_resp;
   };
 }
