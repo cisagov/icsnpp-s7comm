@@ -147,6 +147,9 @@ export{
         module_name              : string    &log;
         plant_name              : string    &log;
         module_serial            : string    &log;
+        order_number            : string    &log &optional;   ##< Order number (MLFB) of the module
+        hardware_version        : string    &log &optional;   ##< Hardware version of the module
+        firmware_version        : string    &log &optional;   ##< Firmware version of the module
     };
     global log_s7comm_known_devices: event(rec: S7COMM_KNOWN_DEVICES);
     global log_policy_s7comm_known_devices: Log::PolicyHook;
@@ -546,6 +549,36 @@ event s7comm_device_identification(c:connection, opcode: count, name: string)
     if (opcode == 0x0005)
     {
         c$s7comm_device_info$module_serial = name;
+    }
+}
+
+###################################################################################################
+#######  Defines logging of s7comm_module_identification event -> s7comm_known_devices.log  #######
+###################################################################################################
+event s7comm_module_identification(c:connection, index: count, order_number: string, module_type: count,
+                                   version_1: count, version_2: count)
+{
+    if (! c?$s7comm_device_info)
+    {
+        local s: S7COMM_KNOWN_DEVICES;
+        c$s7comm_device_info = s;
+    }
+
+    # 0x0001: identification of the module
+    if (index == 0x0001)
+    {
+        c$s7comm_device_info$order_number = strip(gsub(order_number, /[^\x20-\x7e]/, ""));
+    }
+    # 0x0006: identification of the basic hardware
+    if (index == 0x0006)
+    {
+        c$s7comm_device_info$hardware_version = fmt("%d", version_1);
+    }
+    # 0x0007: identification of the basic firmware; the high byte of version_1 is the letter 'V'
+    if (index == 0x0007)
+    {
+        c$s7comm_device_info$firmware_version = fmt("%s%d.%d.%d", version_1 / 256 == 0x56 ? "V" : "",
+                                                    version_1 % 256, version_2 / 256, version_2 % 256);
     }
 }
 

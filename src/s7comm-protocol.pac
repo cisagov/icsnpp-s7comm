@@ -460,28 +460,6 @@ type CPU_Functions(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id
 }
 
 ## For more information: https://support.industry.siemens.com/cs/mdm/109755202?c=38382668299&lc=en-AE
-type W_16_0001_0002_0005() = record {
-    name: bytestring &length=24;
-    reserved: bytestring &length=8;
-};
-
-type W_16_0003() = record {
-    name: bytestring &length=32;
-};
-
-type SZL_DataRecord_xy1c() = record {
-    index: uint16;
-    message: case index of {
-        0x001 -> name_of_automation_system: W_16_0001_0002_0005;
-        0x002 -> name_of_module: W_16_0001_0002_0005;
-        0x003 -> plant_identification: W_16_0003;
-        0x005 -> serial_of_module: W_16_0001_0002_0005;
-        default -> ignore: bytestring &length=32;
-    };
-} &let {
-    deliver: bool = $context.flow.process_szl_data_record_xy1c(this);
-} &byteorder=bigendian;
-
 ## --------------------------------------------READ_SZL--------------------------------------------
 ## Message Description:
 ##      S7comm Read SZL data.
@@ -496,30 +474,54 @@ type SZL_DataRecord_xy1c() = record {
 ## Protocol Parsing:
 ##      Sends read szl information to the s7comm_read_szl event. By default this is then logged to the
 ##      s7comm_read_szl.log file as defined in main.zeek.
+##
+##      The records of the component identification list (SZL 0x001c / 0x011c) are sent to the
+##      s7comm_device_identification event and the records of the module identification list
+##      (SZL 0x0011 / 0x0111) to the s7comm_module_identification event. Both are walked by the
+##      record length the list itself announces; a record cut off by the end of the data unit
+##      is skipped.
+##
+##      A list that does not fit into one data unit is sent in several parts. Only the first part
+##      carries the SZL ID, the SZL index and the list header. The request for the next part
+##      carries no data at all (data_length is 0), and the parts after the first one continue the
+##      record data where the previous part stopped. Neither of them is read as a new list.
 ## ------------------------------------------------------------------------------------------------
 type Read_SZL_Response(szl_id: uint16, data_length: uint16) = record {
     szl_partial_list_length:    uint16;
     szl_partial_list_count:     uint16;
-    data:                       case (szl_id) of {
-         0x001c                 -> identification_message: SZL_DataRecord_xy1c[szl_partial_list_count];
-         default                -> bytes: bytestring &length=data_length-4;
-    };
+    data:                       bytestring &length=data_length-4;
+} &let {
+    deliver_ident: bool = $context.flow.process_szl_ident_list(szl_partial_list_length, data)
+                          &if(szl_id == 0x001c || szl_id == 0x011c);
+    deliver_modules: bool = $context.flow.process_szl_module_list(szl_partial_list_length, data)
+                          &if(szl_id == 0x0011 || szl_id == 0x0111);
 };
+
+type Read_SZL_Ids = record {
+    szl_id:                     uint16;
+    szl_index:                  uint16;
+} &byteorder=bigendian;
 
 type Read_SZL(is_orig: bool, user_data: ROSCTR_User_Data, data_reference_id: uint8, last_data_unit: uint8) = record {
     return_code:                uint8;
     transport_size:             uint8;
     data_length:                uint16;
-    szl_id:                     uint16;
-    szl_index:                  uint16;
-
-    resp: case (is_orig) of {
-        true -> ignore: bytestring &length=data_length-4;
-        false -> response: Read_SZL_Response(szl_id, data_length-4);
+    head: case (has_ids) of {
+        true  -> ids: Read_SZL_Ids;
+        false -> no_ids: empty;
+    };
+    resp: case (has_list) of {
+        true  -> response: Read_SZL_Response(ids.szl_id, data_length-4);
+        false -> ignore: bytestring &restofdata;
     };
 } &let {
     is_originator: bool = is_orig;
-    deliver: bool = $context.flow.process_s7comm_read_szl(this);
+    continuation: bool = $context.flow.szl_continuation(is_orig, data_reference_id, last_data_unit);
+    has_ids: bool = (data_length >= 4 && ! continuation);
+    has_list: bool = (has_ids && ! is_orig && data_length >= 8);
+    szl_id: uint16 = has_ids ? ids.szl_id : 0;
+    szl_index: uint16 = has_ids ? ids.szl_index : 0;
+    deliver: bool = $context.flow.process_s7comm_read_szl(this) &if(has_ids);
 } &byteorder=bigendian;
 
 ## -----------------------------------------S7comm-Error-------------------------------------------
