@@ -8,6 +8,7 @@
 ## Copyright (c) 2023 Battelle Energy Alliance, LLC.  All rights reserved.
 
 %extern{
+    #include <set>
     #include "zeek/file_analysis/Manager.h"
 %}
 
@@ -65,6 +66,11 @@
 %}
 
 refine flow S7COMM_Flow += {
+
+    %member{
+        // Data unit references of the fragmented Read SZL responses that are in progress
+        std::set<uint8> szl_open_;
+    %}
 
     ###############################################################################################
     ################################  Process data for cotp event  ################################
@@ -131,32 +137,74 @@ refine flow S7COMM_Flow += {
             return true;
         %}
 
-    function process_szl_data_record_xy1c(data: SZL_DataRecord_xy1c): bool
+    ###############################################################################################
+    ####### Process the component identification list -> s7comm_device_identification event ######
+    ###############################################################################################
+    ## SZL 0x001c / 0x011c: each record is an index followed by the text (24 characters for
+    ## 1 automation system, 2 module and 5 serial number; 32 for 3 plant designation)
+    function process_szl_ident_list(record_length: uint16, data: const_bytestring): bool
     %{
-        uint16 index = ${data.index};
-        string name;
+        if ( ! ::s7comm_device_identification || record_length < 34 )
+            return true;
 
-        switch (index) {
-            case 0x0001:
-                name =  std_str(${data.name_of_automation_system.name});
-                break;
-            case 0x0002:
-                name =  std_str(${data.name_of_module.name});
-                break;
-            case 0x0003:
-                name =  std_str(${data.plant_identification.name});
-                break;
-            case 0x0005:
-                name =  std_str(${data.serial_of_module.name});
-                break;
-        }
-        if ( name.size() )
+        const uint8* p = data.begin();
+        int n = data.length();
+        for ( int o = 0; o + record_length <= n; o += record_length )
+        {
+            uint16 index = (p[o] << 8) | p[o + 1];
+            if ( index != 0x0001 && index != 0x0002 && index != 0x0003 && index != 0x0005 )
+                continue;
+            string name((const char*)(p + o + 2), index == 0x0003 ? 32 : 24);
             zeek::BifEvent::enqueue_s7comm_device_identification(connection()->zeek_analyzer(),
                         connection()->zeek_analyzer()->Conn(),
                         index,
                         zeek::make_intrusive<zeek::StringVal>(name));
-
+        }
         return true;
+    %}
+
+    ###############################################################################################
+    ######## Process the module identification list -> s7comm_module_identification event ########
+    ###############################################################################################
+    ## SZL 0x0011 / 0x0111: each record is index (2 bytes), order number (20), module type (2),
+    ## version 1 (2) and version 2 (2)
+    function process_szl_module_list(record_length: uint16, data: const_bytestring): bool
+    %{
+        if ( ! ::s7comm_module_identification || record_length < 28 )
+            return true;
+
+        const uint8* p = data.begin();
+        int n = data.length();
+        for ( int o = 0; o + record_length <= n; o += record_length )
+        {
+            string order_number((const char*)(p + o + 2), 20);
+            zeek::BifEvent::enqueue_s7comm_module_identification(connection()->zeek_analyzer(),
+                        connection()->zeek_analyzer()->Conn(),
+                        (p[o] << 8) | p[o + 1],
+                        zeek::make_intrusive<zeek::StringVal>(order_number),
+                        (p[o + 22] << 8) | p[o + 23],
+                        (p[o + 24] << 8) | p[o + 25],
+                        (p[o + 26] << 8) | p[o + 27]);
+        }
+        return true;
+    %}
+
+    ###############################################################################################
+    ############ Tell the parts of a fragmented Read SZL response after the first one ############
+    ###############################################################################################
+    ## A part that is not the last one opens the sequence under its data unit reference and the
+    ## last part closes it. Returns true for every part after the first one.
+    function szl_continuation(is_orig: bool, data_reference_id: uint8, last_data_unit: uint8): bool
+    %{
+        if ( is_orig || data_reference_id == 0 )
+            return false;
+
+        bool continuation = szl_open_.count(data_reference_id) > 0;
+        if ( last_data_unit != 0 )
+            szl_open_.insert(data_reference_id);
+        else
+            szl_open_.erase(data_reference_id);
+        return continuation;
     %}
 
     ###############################################################################################
